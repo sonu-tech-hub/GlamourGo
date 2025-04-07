@@ -1,0 +1,15 @@
+:root {
+  --body-bg: #fef4ea;
+  --primary-btn: #doa189;
+  --primary-btn-hover: #ecdfcf;
+  --border-color: #b0b098;
+  --accent-1: #a38772;
+  --accent-2: #c2bfb0;
+  --text-dark: #333333;
+  --text-light: #777777;
+  --success: #4caf50;
+  --warning: #ff9800;
+  --error: #f44336;
+  --white: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.1);
+}

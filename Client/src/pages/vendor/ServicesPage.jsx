@@ -5,15 +5,18 @@ import { FaPlus, FaEdit, FaTrash, FaClock, FaSearch, FaFilter } from 'react-icon
 import toast from 'react-hot-toast';
 
 import { getShopServices, deleteService } from '../../services/serviceService';
+import {getAllShops} from '../../services/shopService';
 import { useAuth } from '../../context/AuthContext';
-import AddServiceModal from '../../components/vendor/AddServiceModal';
-import EditServiceModal from '../../components/vendor/EditServiceModal';
+import AddServiceModal from './AddServiceModal';
+import EditServiceModal from './EditServiceModal';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const ServicesPage = () => {
   const { user } = useAuth();
-  const [shopId, setShopId] = useState(user?.shopId || '');
+  console.log("user",user)
+ const [shopId, setShopId] = useState('');
+
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -27,9 +30,23 @@ const ServicesPage = () => {
   const [selectedService, setSelectedService] = useState(null);
   
   useEffect(() => {
-    fetchServices();
-  }, [shopId]);
-  
+  const fetchShopAndServices = async () => {
+    try {
+      const shopResponse = await getAllShops(user._id);
+      const fetchedShopId = shopResponse.data.shop._id;
+      console.log("fetchedShopId",fetchedShopId)
+      setShopId(fetchedShopId);
+    } catch (error) {
+      console.error('Failed to fetch shop for vendor:', error);
+      toast.error('Unable to find your shop');
+    }
+  };
+
+  if (user?._id && user?.userType === 'vendor') {
+    fetchShopAndServices();
+  }
+}, [user]);
+  console.log("shopId",user?.user?.shopId);
   useEffect(() => {
     // Filter services based on category and search query
     let filtered = [...services];
@@ -50,22 +67,26 @@ const ServicesPage = () => {
   }, [services, selectedCategory, searchQuery]);
   
   const fetchServices = async () => {
-    setIsLoading(true);
-    try {
-      const response = await getShopServices(shopId);
-      setServices(response.data.services);
-      setFilteredServices(response.data.services);
-      
-      // Extract unique categories
-      const uniqueCategories = [...new Set(response.data.services.map(service => service.category))];
-      setCategories(uniqueCategories);
-    } catch (error) {
-      console.error('Error fetching services:', error);
-      toast.error('Failed to load services');
-    } finally {
-      setIsLoading(false);
+  setIsLoading(true);
+  try {
+    const response = await getShopServices(shopId);
+    if (!response?.data?.services) {
+      throw new Error('Invalid response structure');
     }
-  };
+
+    setServices(response.data.services);
+    setFilteredServices(response.data.services);
+
+    // Extract unique categories
+    const uniqueCategories = [...new Set(response.data.services.map(service => service.category))];
+    setCategories(uniqueCategories);
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    toast.error('Failed to load services');
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   const handleDeleteService = async () => {
     try {
@@ -88,7 +109,11 @@ const ServicesPage = () => {
     setSelectedService(service);
     setIsDeleteModalOpen(true);
   };
-  
+  const handleCategoryAdded = (newCategory) => {
+  if (!categories.includes(newCategory)) {
+    setCategories(prev => [...prev, newCategory]);
+  }
+};
   return (
     <div className="bg-[#fef4ea] min-h-screen py-8">
       <div className="container mx-auto px-4">
@@ -99,7 +124,7 @@ const ServicesPage = () => {
           
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            className="flex items-center bg-[#doa189] hover:bg-[#ecdfcf] text-[#b99160] border-x-2  font-bold py-2 px-4 rounded-lg transition-colors"
           >
             <FaPlus className="mr-2" />
             Add New Service
@@ -249,6 +274,7 @@ const ServicesPage = () => {
         shopId={shopId}
         onServiceAdded={fetchServices}
         categories={categories}
+        onCategoryAdded={handleCategoryAdded}
       />
       
       {/* Edit Service Modal */}

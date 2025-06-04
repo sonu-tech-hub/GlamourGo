@@ -106,11 +106,11 @@ const VendorSidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full bg-[#doa189] flex items-center justify-center text-white">
-              {user?.name?.charAt(0) || 'U'}
+              {user?.user?.name?.charAt(0) || 'U'}
             </div>
             <div className="ml-3">
-              <p className="font-medium text-gray-800">{user?.name || 'Vendor'}</p>
-              <p className="text-sm text-gray-500">{user?.email || 'vendor@example.com'}</p>
+              <p className="font-medium text-gray-800">{user?.user?.name || 'Vendor'}</p>
+              <p className="text-sm text-gray-500">{user?.user?.email || 'vendor@example.com'}</p>
             </div>
           </div>
         </div>

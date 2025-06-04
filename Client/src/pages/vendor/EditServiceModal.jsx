@@ -4,7 +4,7 @@ import { FaTimes, FaPlus, FaClock, FaTag, FaRupeeSign } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 import { updateService } from '../../services/serviceService';
-import LoadingSpinner from '../common/LoadingSpinner';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const EditServiceModal = ({ isOpen, onClose, service, onServiceUpdated, categories }) => {
   const [formData, setFormData] = useState({

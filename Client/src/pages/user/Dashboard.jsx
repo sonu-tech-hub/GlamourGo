@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { getUserAppointments } from '../../services/appointmentService';
 import { getUserProfile } from '../../services/userService';
 import { getFavoriteShops } from '../../services/shopService';
-import AppointmentCard from '../../components/user/AppointmentCard';
+import AppointmentCard from './AppointmentCard';
 import ShopCard from '../../components/shop/ShopCard';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useAuth } from '../../context/AuthContext';
@@ -29,13 +29,16 @@ const UserDashboard = () => {
         const profileResponse = await getUserProfile();
         setProfile(profileResponse.data);
         
+        
         // Get user appointments
         const appointmentsResponse = await getUserAppointments();
         setAppointments(appointmentsResponse.data);
         
+        
         // Get favorite shops
         const favoritesResponse = await getFavoriteShops();
         setFavoriteShops(favoritesResponse.data);
+        console.log("favirites",favoritesResponse.data);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         toast.error('Failed to load dashboard data');
@@ -50,6 +53,13 @@ const UserDashboard = () => {
     gsap.from('.dashboard-card', {
       y: 30,
       opacity: 0,
+      stagger: 0.1,
+      duration: 0.8,
+      ease: 'power3.out'
+    });
+    gsap.to('.dashboard-card', {
+      y: 0,
+      opacity: 1,
       stagger: 0.1,
       duration: 0.8,
       ease: 'power3.out'
@@ -69,7 +79,7 @@ const UserDashboard = () => {
     <div className="bg-[#fef4ea] min-h-screen py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold text-[#a38772] mb-6">
-          Welcome, {user?.name || 'User'}
+          Welcome, {user?.user?.name || 'User'}
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -158,7 +168,7 @@ const UserDashboard = () => {
               </p>
               <Link
                 to="/shops"
-                className="inline-block bg-[#doa189] hover:bg-[#ecdfcf] text-white font-medium py-2 px-6 rounded-lg transition-colors"
+                className="inline-block bg-[#doa189] hover:bg-[#ecdfcf] text-[#a27947] border-x-2 hover:text-[#a38772] font-medium py-2 px-6 rounded-lg transition-colors"
               >
                 Book an Appointment
               </Link>
@@ -206,7 +216,7 @@ const UserDashboard = () => {
              </p>
              <Link
                to="/shops"
-               className="inline-block bg-[#doa189] hover:bg-[#ecdfcf] text-white font-medium py-2 px-6 rounded-lg transition-colors"
+               className="inline-block bg-[#doa189] hover:bg-[#ecdfcf] text-[#a27947] border-x-2 hover:text-[#a38772] font-medium py-2 px-6 rounded-lg transition-colors"
              >
                Explore Shops
              </Link>
@@ -228,14 +238,14 @@ const UserDashboard = () => {
            </Link>
          </div>
          
-         <div className="flex flex-col md:flex-row">
+         <div className="flex flex-col md:flex-row ">
            <div className="md:w-1/4 mb-6 md:mb-0 flex flex-col items-center">
-             <div className="w-24 h-24 rounded-full overflow-hidden bg-[#doa189] flex items-center justify-center mb-3">
+             <div className="w-24 h-24 rounded-full overflow-hidden bg-[#doa189] flex items-center justify-center mb-3 border-x-2 border-[#a38772]">
                {profile?.profilePicture ? (
                  <img 
                    src={profile.profilePicture} 
                    alt={profile.name} 
-                   className="w-full h-full object-cover"
+                   className="w-full h-full object-cover "
                  />
                ) : (
                  <FaUser className="text-white text-4xl" />

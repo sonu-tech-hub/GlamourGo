@@ -485,3 +485,62 @@ exports.getRecentActivities = async (limit) => {
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, limit);
 };
+
+exports.getUserByIdAdmin = async (userId) => {
+  try {
+    if (!userId) throw new Error('User ID is required');
+    const user = await User.findById(userId).select('-password');
+    if (!user) throw new Error('User not found');
+    return user;
+  } catch (error) {
+    throw new Error(`Error fetching user: ${error.message}`);
+  }
+};
+
+exports.updateUserByIdAdmin = async (userId, updateData) => {
+  try {
+    if (!userId || !updateData) throw new Error('User ID and update data are required');
+    
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+    
+    const allowedFields = ['name', 'email', 'phone', 'userType', 'isActive'];
+    const updates = {};
+    
+    allowedFields.forEach(field => {
+      if (updateData[field] !== undefined) {
+        updates[field] = updateData[field];
+      }
+    });
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    return updatedUser;
+  } catch (error) {
+    throw new Error(`Error updating user: ${error.message}`);
+  }
+};
+
+exports.deleteUserByIdAdmin = async (userId) => {
+  try {
+    if (!userId) throw new Error('User ID is required');
+    
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+    
+    // Optional: Add checks for associated data
+    const hasAppointments = await Appointment.exists({ user: userId });
+    if (hasAppointments) {
+      throw new Error('Cannot delete user with existing appointments');
+    }
+    
+    await user.deleteOne();
+    return { message: 'User successfully deleted' };
+  } catch (error) {
+    throw new Error(`Error deleting user: ${error.message}`);
+  }
+};

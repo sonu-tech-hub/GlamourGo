@@ -11,7 +11,7 @@ exports.createReview = async ({ shopId, appointmentId, userId, rating, title, co
   const shop = await Shop.findById(shopId);
   if (!shop) {
     throw new Error('Shop not found');
-  }
+  } 
   
   // Verify that the user has had an appointment at this shop
   let isVerified = false;

@@ -7,8 +7,8 @@ import toast from 'react-hot-toast';
 
 import api from '../../services/api';
 import { getStatusColor } from '../../utils/helpers';
-import LoadingSpinner from '../common/LoadingSpinner';
-import ConfirmationModal from '../common/ConfirmationModal';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ConfirmationModal from '../../components/common/ConfirmationModal';
 
 const AppointmentCard = ({ appointment, showActions = true, onStatusChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

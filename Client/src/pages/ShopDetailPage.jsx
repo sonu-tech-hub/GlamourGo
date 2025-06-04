@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper';
+import Navigation  from 'swiper';
+import Pagination from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -19,7 +20,8 @@ import {
   FaHeart, 
   FaRegHeart, 
   FaShare, 
-  FaCalendarAlt 
+  FaCalendarAlt,
+  FaGlobe 
 } from 'react-icons/fa';
 
 import { getShopById, toggleFavoriteShop } from '../services/shopService';

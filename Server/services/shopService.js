@@ -150,51 +150,48 @@ exports.getAllShops = async (filters = {}) => {
 // Get nearby shops
 exports.getNearbyShops = async (coordinates, radius = 10, filters = {}) => {
   const { latitude, longitude } = coordinates;
-  
+
   if (!latitude || !longitude) {
     throw new Error('Coordinates are required');
   }
-  
+
   const { category, query, rating } = filters;
-  
-  // Convert radius from kilometers to meters
+
   const radiusInMeters = radius * 1000;
-  
-  const queryOptions = {
-    'address.coordinates': {
+
+  const geoQuery = {
+    coordinates: {
       $near: {
         $geometry: {
           type: 'Point',
-          coordinates: [longitude, latitude]
+          coordinates: [parseFloat(longitude), parseFloat(latitude)]
         },
         $maxDistance: radiusInMeters
       }
-    },
+    }
+  };
+
+  const matchQuery = {
+    ...geoQuery,
     isVerified: true,
     isActive: true
   };
-  
-  // Apply additional filters
-  if (category) {
-    queryOptions.category = category;
-  }
-  
-  if (rating) {
-    queryOptions['ratings.average'] = { $gte: Number(rating) };
-  }
-  
+
+  if (category) matchQuery.category = category;
+  if (rating) matchQuery['ratings.average'] = { $gte: Number(rating) };
+
   if (query) {
-    queryOptions['$or'] = [
+    matchQuery.$or = [
       { name: { $regex: query, $options: 'i' } },
       { 'services.name': { $regex: query, $options: 'i' } },
       { category: { $regex: query, $options: 'i' } }
     ];
   }
-  
-  const shops = await Shop.find(queryOptions);
-  
+
+  const shops = await Shop.find(matchQuery);
   return shops;
 };
+
 
 // Update shop
 exports.updateShop = async (shopId, updateData, userId) => {
@@ -322,4 +319,101 @@ exports.getFeaturedShops = async (limit = 6) => {
   .limit(Number(limit));
   
   return featuredShops;
+};
+exports.updateVerificationStatus = async (shopId, isVerified, verificationDetails) => {
+  const shop = await Shop.findById(shopId);
+  if (!shop) {
+    throw new Error('Shop not found');
+  }
+
+  shop.isVerified = isVerified;
+  shop.verificationDetails = verificationDetails;
+  await shop.save();
+
+  return shop;
+};
+exports.updateActivationStatus = async (shopId, isActive) => {
+  const shop = await Shop.findById(shopId);
+  if (!shop) {
+    throw new Error('Shop not found');
+  }
+
+  shop.isActive = isActive;
+  await shop.save();
+
+  return shop;
+};
+exports.getAllShopsAdmin = async (filters = {}) => {
+  const {
+    query,
+    category,
+    rating,
+    isVerified,
+    isActive,
+    page = 1,
+    limit = 10
+  } = filters;
+
+  const queryOptions = {};
+
+  if (query) {
+    queryOptions['$or'] = [
+      { name: { $regex: query, $options: 'i' } },
+      { category: { $regex: query, $options: 'i' } },
+      { 'address.city': { $regex: query, $options: 'i' } },
+      { 'address.state': { $regex: query, $options: 'i' } }
+    ];
+  }
+
+  if (category) {
+    queryOptions.category = category;
+  }
+
+  if (rating) {
+    queryOptions['ratings.average'] = { $gte: Number(rating) };
+  }
+
+  if (isVerified !== undefined) {
+    queryOptions.isVerified = isVerified === 'true';
+  }
+
+  if (isActive !== undefined) {
+    queryOptions.isActive = isActive === 'true';
+  }
+
+  const shops = await Shop.find(queryOptions)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit));
+
+  const totalShops = await Shop.countDocuments(queryOptions);
+
+  return {
+    shops,
+    pagination: {
+      totalShops,
+      totalPages: Math.ceil(totalShops / limit),
+      currentPage: Number(page),
+      limit: Number(limit)
+    }
+  };
+};
+// Get shops by owner (for vendors managing their own shops)
+exports.getShopsByOwner = async (ownerId) => {
+  const shops = await Shop.find({ owner: ownerId });
+  return shops;
+};
+
+
+// Get a single shop by vendor/owner ID
+exports.getShopByVendorId = async (ownerId) => {
+  const shop = await Shop.findOne({ owner: ownerId })  // Querying by 'owner'
+    .populate('owner', 'name email phone')            // Populates owner details
+    .populate('reviews');                             // Optional: populate reviews
+
+  if (!shop) {
+    throw new Error('No shop found for this vendor');
+  }
+
+  return shop;
 };

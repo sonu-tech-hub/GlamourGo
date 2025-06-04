@@ -174,27 +174,27 @@ exports.addFundsToWallet = async (userId, amount, transactionDetails) => {
 
 // Verify email or phone with OTP
 exports.verifyOTP = async (contact, otp) => {
-  // In a real implementation, you would validate OTP against stored value
-  // For simplicity, we'll assume OTP is valid if it's '123456'
-  if (otp !== '123456') {
-    throw new Error('Invalid OTP');
-  }
-  
-  // Find user by email or phone
+  // Find user by email or phone first
   const user = await User.findOne({
     $or: [{ email: contact }, { phone: contact }]
   });
-  
+
   if (!user) {
     throw new Error('User not found');
   }
-  
+
+  // For testing purposes, OTP is hardcoded
+  if (otp !== '123456') {
+    throw new Error('Invalid OTP');
+  }
+
   // Mark user as verified
   user.isVerified = true;
   await user.save();
-  
+
   return { success: true };
 };
+
 
 // Get user's notifications
 exports.getUserNotifications = async (userId) => {
@@ -225,4 +225,44 @@ exports.markNotificationAsRead = async (userId, notificationId) => {
   await user.save();
   
   return notification;
+};
+exports.markAllNotificationsAsRead = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  user.notifications.forEach(notification => {
+    notification.read = true;
+  });
+
+  await user.save();
+  return user.notifications;
+};
+exports.deleteNotification = async (userId, notificationId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  const notification = user.notifications.id(notificationId);
+
+  if (!notification) {
+    throw new Error('Notification not found');
+  }
+
+  notification.remove(); // Mongoose subdoc method
+  await user.save();
+};
+exports.clearAllNotifications = async (userId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  user.notifications = [];
+  await user.save();
 };

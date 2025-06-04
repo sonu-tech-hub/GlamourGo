@@ -21,6 +21,12 @@ const ForgotPasswordPage = () => {
       duration: 0.8,
       ease: 'power3.out'
     });
+    gsap.to('.forgot-card', {
+      y: 0,
+      opacity: 1, 
+      duration: 0.8,
+      ease: 'power3.out'
+    });
   }, []);
   
   const handleSubmit = async (e) => {
@@ -92,7 +98,7 @@ const ForgotPasswordPage = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full flex justify-center items-center bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                    className="w-full flex justify-center items-center bg-[#doa189] hover:bg-[#ecdfcf] text-[#a38772] border-x-2 font-bold py-3 px-4 rounded-lg transition-colors"
                   >
                     {isLoading ? (
                       <>

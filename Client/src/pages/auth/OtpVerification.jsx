@@ -1,7 +1,7 @@
 // client/src/components/auth/OtpVerification.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { FaEnvelope, FaPhone, FaLock } from 'react-icons/fa';
-import LoadingSpinner from '../common/LoadingSpinner';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const OtpVerification = ({ email, phone, onVerify, onResend, isLoading }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);

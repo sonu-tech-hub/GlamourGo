@@ -1,7 +1,7 @@
 // client/src/pages/ShopsPage.jsx (continued)
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FaSearch, FaMapMarkerAlt, FaFilter, FaSortAmountDown, FaList, FaThLarge, FaSpinner } from 'react-icons/fa';
+import { FaSearch, FaMapMarkerAlt, FaFilter, FaSortAmountDown, FaList, FaThLarge, FaSpinner , FaStore} from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 import api from '../services/api';
@@ -242,7 +242,7 @@ const ShopsPage = () => {
             
             <button
               type="submit"
-              className="bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-[#doa189] hover:bg-[#ecdfcf] text-[#a38772] border-x-2 font-bold py-3 px-6 rounded-lg transition-colors"
             >
               Search
             </button>
@@ -436,7 +436,7 @@ const ShopsPage = () => {
                 icon={<FaStore className="text-6xl" />}
                 title="No Shops Found"
                 message="We couldn't find any shops matching your criteria. Try adjusting your filters or search for something else."
-                actionText="Reset Filters"
+                actionText={<span className='text-[#a38772]'>Reset Filters</span>}
                 onActionClick={resetFilters}
               />
             )}

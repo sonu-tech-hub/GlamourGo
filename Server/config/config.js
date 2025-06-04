@@ -17,8 +17,13 @@ module.exports = {
   razorpayKeyId: process.env.RAZORPAY_KEY_ID,
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET,
   
+  // Twilio configuration
+  twilioAccountSid: process.env.TWILIO_ACCOUNT_SID,
+  twilioAuthToken: process.env.TWILIO_AUTH_TOKEN,
+  twilioPhoneNumber: process.env.TWILIO_PHONE_NUMBER,
+  
   // Frontend URL for links in emails
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
   
   // Upload directory
   uploadDir: process.env.UPLOAD_DIR || 'uploads',

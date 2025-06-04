@@ -112,7 +112,7 @@ const Profile = () => {
       const formData = new FormData();
       formData.append('profileImage', profileImage);
       
-      const response = await api.post('/users/profile-image', formData);
+      const response = await api.post('/users/profile', formData);
       
       // Update user context with new profile image
       await updateProfile({ profilePicture: response.data.profilePicture });
@@ -218,7 +218,7 @@ const Profile = () => {
               General Information
             </button>
             <button
-              className={`flex-1 py-4 px-6 text-center focus:outline-none ${
+              className={`flex-1 py-4 px-6 text-center focus:outline-none  ${
                 activeTab === 'password'
                   ? 'border-b-2 border-[#doa189] text-[#doa189] font-medium'
                   : 'text-gray-500 hover:text-[#a38772]'
@@ -235,7 +235,7 @@ const Profile = () => {
               <form onSubmit={handleUpdateProfile}>
                 <div className="flex flex-col md:flex-row">
                   {/* Profile Image */}
-                  <div className="md:w-1/3 mb-6 md:mb-0 flex flex-col items-center">
+                  <div className="md:w-1/3 mb-6 md:mb-0 flex flex-col items-center ">
                     <div className="relative mb-4">
                       <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200">
                         {previewUrl ? (
@@ -333,7 +333,7 @@ const Profile = () => {
                         <button
                           type="submit"
                           disabled={isLoading || isUploading}
-                          className="w-full md:w-auto flex justify-center items-center bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                          className="w-full md:w-auto flex justify-center border-2 border-[#doa189] items-center bg-[#doa189] hover:bg-[#e5d9cb] text-[#b58a59] hover:text-[#392610] font-bold py-3 px-6 rounded-lg transition-colors"
                         >
                           {(isLoading || isUploading) ? (
                             <>
@@ -437,7 +437,7 @@ const Profile = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full flex justify-center items-center bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                      className="w-full flex justify-center items-center bg-[#doa189] hover:bg-[#e5d9cb] border-y-2 text-[#b58a59] hover:text-[#392610] font-bold py-3 px-6 rounded-lg transition-colors"
                     >
                       {isLoading ? (
                         <>

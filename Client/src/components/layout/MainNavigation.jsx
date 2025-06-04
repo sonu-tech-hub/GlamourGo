@@ -13,8 +13,7 @@ const MainNavigation = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Close menus when changing routes
+    // Close menus when changing routes
   useEffect(() => {
     setIsMobileMenuOpen(false);
     setIsUserMenuOpen(false);
@@ -28,10 +27,23 @@ const MainNavigation = () => {
       duration: 0.5,
       ease: 'power3.out'
     });
+    gsap.to('#logo', {
+      y: 0,
+      opacity: 1,
+      duration: 0.5,
+      ease: 'power3.out'
+    });
     
     gsap.from('#nav-items > *', {
       y: -20,
       opacity: 0,
+      stagger: 0.1,
+      duration: 0.5,
+      ease: 'power3.out'
+    });
+    gsap.to('#nav-items > *', {
+      y: 0,
+      opacity: 1,
       stagger: 0.1,
       duration: 0.5,
       ease: 'power3.out'
@@ -114,11 +126,11 @@ const MainNavigation = () => {
                 <div className="flex items-center space-x-4">
                   {/* Notifications */}
                   <div className="relative">
-                    <Link to="/notifications">
+                    <Link to="user/notifications">
                       <FaBell className="text-[#a38772] text-xl hover:text-[#doa189]" />
-                      {user?.notifications?.filter(n => !n.read).length > 0 && (
+                      {user?.user?.notifications?.filter(n => !n.read).length > 0 && (
                         <span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-white text-xs">
-                          {user.notifications.filter(n => !n.read).length}
+                          {user?.user?.notifications.filter(n => !n.read).length}
                         </span>
                       )}
                     </Link>
@@ -131,22 +143,22 @@ const MainNavigation = () => {
                       className="flex items-center space-x-2"
                     >
                       <div className="w-8 h-8 rounded-full overflow-hidden bg-[#doa189] flex items-center justify-center">
-                        {user?.profilePicture ? (
+                        {user?.user?.profilePicture ? (
                           <img 
-                            src={user.profilePicture} 
-                            alt={user.name} 
+                            src={user?.user?.profilePicture} 
+                            alt={user?.user?.name} 
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <FaUser className="text-white" />
+                          <FaUser className="text-[#a38772]" />
                         )}
                       </div>
-                      <span className="text-[#a38772]">{user?.name}</span>
+                      <span className="text-[#a38772]">{user?.user?.name}</span>
                     </button>
                     
                     {isUserMenuOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
-                        {user?.userType === 'vendor' && (
+                        {user?.user?.userType === 'vendor' && (
                           <Link
                             to="/vendor/dashboard"
                             className="block px-4 py-2 text-[#a38772] hover:bg-[#fef4ea]"
@@ -154,8 +166,8 @@ const MainNavigation = () => {
                             Shop Dashboard
                           </Link>
                         )}
-                        
-                        {user?.userType === 'admin' && (
+                       
+                        {user?.user?.userType === 'admin' && (
                           <Link
                             to="/admin/dashboard"
                             className="block px-4 py-2 text-[#a38772] hover:bg-[#fef4ea]"
@@ -207,7 +219,7 @@ const MainNavigation = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-[#doa189] hover:bg-[#ecdfcf] text-white py-2 px-4 rounded-lg transition"
+                  className="bg-[#doa189] border-2 hover:border-0 hover:text-white border-[#b0b098] hover:bg-[#ecdfcf] text-[#a38772] py-2 px-4 rounded-lg transition"
                 >
                   Sign Up
                 </Link>
@@ -269,19 +281,19 @@ const MainNavigation = () => {
                   <hr className="border-[#b0b098] my-2" />
                   
                   <Link
-                    to="/notifications"
+                    to="/user/notifications"
                     className="flex items-center text-[#a38772] hover:text-[#doa189] py-2"
                   >
                     <FaBell className="mr-2" />
                     Notifications
                     {user?.notifications?.filter(n => !n.read).length > 0 && (
                       <span className="ml-2 bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-white text-xs">
-                        {user.notifications.filter(n => !n.read).length}
+                        {user?.user?.notifications.filter(n => !n.read).length}
                       </span>
                     )}
                   </Link>
                   
-                  {user?.userType === 'vendor' && (
+                  {user?.user?.userType === 'vendor' && (
                     <Link
                       to="/vendor/dashboard"
                       className="text-[#a38772] hover:text-[#doa189] py-2"
@@ -290,7 +302,7 @@ const MainNavigation = () => {
                     </Link>
                   )}
                   
-                  {user?.userType === 'admin' && (
+                  {user?.user?.userType === 'admin' && (
                     <Link
                       to="/admin/dashboard"
                       className="text-[#a38772] hover:text-[#doa189] py-2"

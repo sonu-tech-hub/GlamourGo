@@ -11,7 +11,7 @@ import {
 import toast from 'react-hot-toast';
 
 import api from '../../services/api';
-import AppointmentCard from '../../components/user/AppointmentCard';
+import AppointmentCard from './AppointmentCard';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import EmptyState from '../../components/common/EmptyState';
 
@@ -115,7 +115,7 @@ const Appointments = () => {
           
           <Link
             to="/shops"
-            className="inline-flex items-center bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-2 px-4 rounded-lg transition-colors"
+            className="inline-flex items-center border-2 bg-[#doa189] hover:bg-[#e1c5a1] text-[#875e2c] font-bold py-2 px-4 rounded-lg transition-colors"
           >
             <FaCalendarAlt className="mr-2" />
             Book New Appointment
@@ -237,8 +237,8 @@ const Appointments = () => {
                 }
                 actionText={
                   searchQuery || statusFilter !== 'all'
-                    ? "Clear Filters"
-                    : "Book an Appointment"
+                    ? <span className=" text-[#875e2c] px-4 py-2 rounded-md cursor-pointer">Clear Filters</span>
+                    : <span className=" text-[#875e2c] px-4 py-2 rounded-md cursor-pointer">Book an Appointment</span>
                 }
                 actionLink={
                   searchQuery || statusFilter !== 'all'

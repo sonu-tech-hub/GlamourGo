@@ -94,11 +94,11 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center">
             <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white">
-              {user?.name?.charAt(0) || 'A'}
+              {user?.user?.name?.charAt(0) || 'A'}
             </div>
             <div className="ml-3">
-              <p className="font-medium text-gray-800">{user?.name || 'Admin'}</p>
-              <p className="text-sm text-gray-500">{user?.email || 'admin@example.com'}</p>
+              <p className="font-medium text-gray-800">{user?.user?.name || 'Admin'}</p>
+              <p className="text-sm text-gray-500">{user?.user?.email || 'admin@example.com'}</p>
             </div>
           </div>
         </div>

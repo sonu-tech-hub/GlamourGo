@@ -52,6 +52,13 @@ const VendorDashboard = () => {
       duration: 0.6,
       ease: "power3.out"
     });
+    gsap.to(dashboardRef.current.children, {
+      y: 0,
+      opacity: 1,
+      stagger: 0.1,
+      duration: 0.6,
+      ease: "power3.out"
+    });
     
     fetchDashboardData();
   }, []);
@@ -195,4 +202,3 @@ const VendorDashboard = () => {
 };
 
 export default VendorDashboard;
-6

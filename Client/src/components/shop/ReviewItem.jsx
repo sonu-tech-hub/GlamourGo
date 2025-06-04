@@ -1,6 +1,5 @@
-// components/shop/ReviewItem.jsx
 import React from 'react';
-import { FaStar, FaUser, FaCheck, FaReply } from 'react-icons/fa';
+import { FaStar, FaUser, FaCheck, FaReply, FaThumbsUp } from 'react-icons/fa';
 import { format } from 'date-fns';
 
 const ReviewItem = ({ review }) => {

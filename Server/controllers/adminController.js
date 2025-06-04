@@ -2,6 +2,7 @@
 const adminService = require('../services/adminService');
 
 // Get dashboard stats
+
 exports.getDashboardStats = async (req, res) => {
   try {
     const stats = await adminService.getDashboardStats();
@@ -35,9 +36,12 @@ exports.approveShop = async (req, res) => {
   try {
     const { shopId } = req.params;
     const { message } = req.body;
-    
+
+    if (!message) {
+      return res.status(400).json({ message: 'Approval message is required' });
+    }
+
     const shop = await adminService.approveShop(shopId, message);
-    
     res.json({
       message: 'Shop approved successfully',
       shop
@@ -48,18 +52,18 @@ exports.approveShop = async (req, res) => {
   }
 };
 
+
 // Reject a shop
 exports.rejectShop = async (req, res) => {
   try {
     const { shopId } = req.params;
     const { reason } = req.body;
-    
+
     if (!reason) {
       return res.status(400).json({ message: 'Rejection reason is required' });
     }
-    
+
     const shop = await adminService.rejectShop(shopId, reason);
-    
     res.json({
       message: 'Shop rejected successfully',
       shop

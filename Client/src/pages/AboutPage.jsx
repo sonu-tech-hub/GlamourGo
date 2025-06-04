@@ -26,11 +26,27 @@ const AboutPage = () => {
       duration: 1,
       ease: 'power3.out'
     });
+    gsap.to('.hero-content', {
+      y: 0,
+      opacity: 1,
+      duration: 1,
+      ease: 'power3.out'
+    });
     
     // Animation for mission section
     gsap.from('.mission-item', {
       y: 50,
       opacity: 0,
+      stagger: 0.2,
+      duration: 0.8,
+      scrollTrigger: {
+        trigger: '.mission-section',
+        start: 'top 80%'
+      }
+    });
+    gsap.to('.mission-item', {
+      y: 0,
+      opacity: 1,
       stagger: 0.2,
       duration: 0.8,
       scrollTrigger: {
@@ -50,6 +66,16 @@ const AboutPage = () => {
         start: 'top 70%'
       }
     });
+    gsap.to('.feature-item', {
+      y: 0,
+      opacity: 1,
+      stagger: 0.15,
+      duration: 0.8,
+      scrollTrigger: {
+        trigger: '.features-section',
+        start: 'top 70%'
+      }
+    });
     
     // Animation for team section
     gsap.from('.team-member', {
@@ -62,6 +88,16 @@ const AboutPage = () => {
         start: 'top 70%'
       }
     });
+    gsap.to('.team-member', {
+      scale: 1,
+      opacity: 1,
+      stagger: 0.2,
+      duration: 0.8,
+      scrollTrigger: {
+        trigger: '.team-section',
+        start: 'top 70%'
+      }
+      });
   }, []);
   
   return (
@@ -81,7 +117,7 @@ const AboutPage = () => {
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
                 to="/shops"
-                className="bg-[#doa189] hover:bg-[#ecdfcf] text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                className="bg-[#doa189] hover:bg-[#ecdfcf] text-[#896232] border-2 font-bold py-3 px-6 rounded-lg transition-colors"
               >
                 <FaSearch className="inline-block mr-2" />
                 Find Services
@@ -250,7 +286,7 @@ const AboutPage = () => {
       
       {/* Call To Action */}
       <section className="py-16 bg-[#doa189] text-white cta-section">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center text-[#896232]">
           <h2 className="text-3xl font-bold mb-6">Ready to Experience Better Bookings?</h2>
           <p className="text-lg mb-8 max-w-2xl mx-auto">
             Join thousands of satisfied customers who have simplified their beauty and wellness routines with our platform.
@@ -266,10 +302,10 @@ const AboutPage = () => {
             
             <Link
               to="/shops"
-              className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-[#doa189] font-bold py-3 px-6 rounded-lg transition-colors"
+              className="bg-transparent border-2 border-white text-[#896232] hover:bg-white hover:text-[#doa189] font-bold py-3 px-6 rounded-lg transition-colors"
             >
               Browse Services
-            </Link>
+            </Link> 
           </div>
         </div>
       </section>

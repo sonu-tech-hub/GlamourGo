@@ -145,8 +145,8 @@ const Favorites = () => {
               }
               actionText={
                 searchQuery || categoryFilter !== 'all'
-                  ? "Clear Filters"
-                  : "Explore Shops"
+                  ? <span className=" text-[#875e2c] px-4 py-2 rounded-md cursor-pointer">Clear Filters </span>
+                  : <span className=" text-[#875e2c] px-4 py-2 rounded-md cursor-pointer">Explore Shops</span>
               }
               actionLink={
                 searchQuery || categoryFilter !== 'all'

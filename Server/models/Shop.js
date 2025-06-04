@@ -1,4 +1,3 @@
-// models/Shop.js
 const mongoose = require('mongoose');
 
 const shopSchema = new mongoose.Schema({
@@ -28,8 +27,17 @@ const shopSchema = new mongoose.Schema({
     zipCode: String,
     country: String,
     coordinates: {
-      lat: Number,
-      lng: Number
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point',
+        
+        required: true
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true
+      }
     }
   },
   contactInfo: {
@@ -97,7 +105,9 @@ const shopSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create index for geospatial queries
-shopSchema.index({ 'address.coordinates': '2dsphere' });
+// Create 2dsphere index on address.coordinates for geospatial queries
+// shopSchema.index({ 'address.coordinates': '2dsphere' });
+shopSchema.index({ coordinates: '2dsphere' });
+
 
 module.exports = mongoose.model('Shop', shopSchema);

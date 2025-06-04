@@ -70,7 +70,7 @@ const ProtectedRoute = ({ element, requiredRole }) => {
     return <Navigate to="/login" />;
   }
   
-  if (requiredRole && user.userType !== requiredRole) {
+  if (requiredRole && user?.user?.userType !== requiredRole) {
     return <Navigate to="/" />;
   }
   
@@ -155,6 +155,7 @@ const App = () => {
               element={<ProtectedRoute element={<UserNotifications />} />} 
             />
           </Route>
+          
           
           {/* Vendor Routes */}
           <Route 

@@ -15,12 +15,12 @@ import {
   getSystemStats,
   getPendingApprovals,
   getRecentUsers
-} from '../../services/adminService';
+} from "../../services/adminService";
 
-import StatsCards from '../../components/admin/StatsCards';
-import PendingApprovals from '../../components/admin/PendingApprovals';
-import RecentUsers from '../../components/admin/RecentUsers';
-import RevenueChart from '../../components/admin/RevenueChart';
+import StatsCards from '../../components/vendor/StatsCards';
+import PendingApprovals from './PendingApprovals';
+import RecentUsers from './RecentUsers';
+import RevenueChart from './RevenueChart';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -44,6 +44,13 @@ const AdminDashboard = () => {
     gsap.from(dashboardRef.current.children, {
       y: 20,
       opacity: 0,
+      stagger: 0.1,
+      duration: 0.6,
+      ease: "power3.out"
+    });
+    gsap.to(dashboardRef.current.children, {
+      y: 0,
+      opacity: 1,
       stagger: 0.1,
       duration: 0.6,
       ease: "power3.out"

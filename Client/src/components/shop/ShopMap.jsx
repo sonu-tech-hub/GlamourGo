@@ -5,17 +5,19 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
-  
+
   useEffect(() => {
     // Load Google Maps script
     if (!window.google) {
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`;
+      // Added a dummy API key here. Replace 'YOUR_DUMMY_API_KEY_HERE' with your actual API key
+      // in a .env file or a secure configuration for production environments.
+      script.src = `https://maps.googleapis.com/maps/api/js?key=YOUR_DUMMY_API_KEY_HERE&libraries=places`;
       script.async = true;
       script.defer = true;
       script.onload = initializeMap;
       document.head.appendChild(script);
-      
+
       return () => {
         document.head.removeChild(script);
       };
@@ -23,25 +25,25 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
       initializeMap();
     }
   }, []);
-  
+
   useEffect(() => {
     if (mapInstanceRef.current) {
       // Clear existing markers
       markersRef.current.forEach(marker => marker.setMap(null));
       markersRef.current = [];
-      
+
       // Add markers for shops
       if (shops && shops.length > 0) {
         // Create bounds to fit all markers
         const bounds = new window.google.maps.LatLngBounds();
-        
+
         shops.forEach(shop => {
           if (shop.address && shop.address.coordinates) {
             const position = {
               lat: shop.address.coordinates.lat,
               lng: shop.address.coordinates.lng
             };
-            
+
             const marker = new window.google.maps.Marker({
               position,
               map: mapInstanceRef.current,
@@ -50,7 +52,7 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
                 url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
               }
             });
-            
+
             // Create info window
             const infoWindow = new window.google.maps.InfoWindow({
               content: `
@@ -60,8 +62,8 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
                   <p style="font-size: 12px; margin-bottom: 5px;">
                     Rating: ${shop.ratings.average.toFixed(1)} (${shop.ratings.count} reviews)
                   </p>
-                  <button 
-                    id="view-shop-${shop._id}" 
+                  <button
+                    id="view-shop-${shop._id}"
                     style="background-color: #doa189; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-top: 5px;"
                   >
                     View Details
@@ -69,11 +71,11 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
                 </div>
               `
             });
-            
+
             // Add click event
             marker.addListener('click', () => {
               infoWindow.open(mapInstanceRef.current, marker);
-              
+
               // Add event listener to the view button after the info window is opened
               window.google.maps.event.addListener(infoWindow, 'domready', () => {
                 document.getElementById(`view-shop-${shop._id}`).addEventListener('click', () => {
@@ -81,19 +83,19 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
                 });
               });
             });
-            
+
             markersRef.current.push(marker);
             bounds.extend(position);
           }
         });
-        
+
         // Add user location marker if available
         if (userLocation) {
           const position = {
             lat: userLocation.lat,
             lng: userLocation.lng
           };
-          
+
           const marker = new window.google.maps.Marker({
             position,
             map: mapInstanceRef.current,
@@ -102,14 +104,14 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
               url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
             }
           });
-          
+
           markersRef.current.push(marker);
           bounds.extend(position);
         }
-        
+
         // Fit map to bounds
         mapInstanceRef.current.fitBounds(bounds);
-        
+
         // If only one marker, zoom out a bit
         if (shops.length === 1 && !userLocation) {
           mapInstanceRef.current.setZoom(15);
@@ -117,7 +119,7 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
       }
     }
   }, [shops, userLocation, onMarkerClick]);
-  
+
   const initializeMap = () => {
     if (mapRef.current && !mapInstanceRef.current) {
       // Initialize map
@@ -131,7 +133,7 @@ const ShopMap = ({ shops, userLocation, onMarkerClick }) => {
       });
     }
   };
-  
+
   return (
     <div ref={mapRef} className="w-full h-full rounded-lg overflow-hidden">
       {!window.google && (

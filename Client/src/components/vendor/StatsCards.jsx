@@ -91,6 +91,13 @@ const StatsCards = ({ stats, isLoading }) => {
       change: null
     },
     {
+      title: 'Total Customers',
+      value: stats.customersCount ?? 0,
+      icon: <FaUserTie className="text-white text-2xl" />,
+      color: 'bg-indigo-600',
+      change: null
+    },
+    {
       title: 'Rating',
       value: stats.reviewsAverage ? stats.reviewsAverage.toFixed(1) : '0.0',
       icon: <FaStar className="text-white text-2xl" />,

@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController'); // Assuming this exists
 const { auth ,isAdmin} = require('../middlewares/authMiddleware'); // Assuming this exists
+const upload = require('../middlewares/multerMiddleware');  // Assuming this exists for file uploads
 
 router.get('/profile', auth, userController.getUserProfile); // this is get the user profile
 router.put('/profile',auth , userController.updateUserProfile); // this is used to update the user profile
+router.post('/profile/upload-image', auth, upload.single('profileImage'), userController.uploadProfileImage); // this is used to upload the user profile image
 router.put('/change-password', auth, userController.changePassword); // this is used to change the user password
 router.post('/wallet/add-funds', auth, userController.addFunds); // this is used to add funds to the user's wallet
 router.post('/verify-otp', userController.verifyOTP); // this is used to verify the OTP

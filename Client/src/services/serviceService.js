@@ -18,7 +18,6 @@ export const getShopServices = async (shopId) => {
 export const createService = async (shopId, serviceData) => {
   return api.post(`/services/${shopId}`, serviceData);
 };
-
 /**
  * Update an existing service.
  * @param {string} serviceId
@@ -34,8 +33,10 @@ export const updateService = async (serviceId, serviceData) => {
  * @param {string} serviceId
  * @returns {Promise}
  */
-export const deleteService = async (serviceId) => {
-  return api.delete(`/services/${serviceId}`);
+export const deleteService = async (serviceId, shopId) => {
+  return await api.delete(`/services/${serviceId}`, {
+    data: { shopId } // ✅ pass shopId in body
+  });
 };
 
 /**

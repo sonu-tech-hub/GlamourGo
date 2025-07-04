@@ -53,4 +53,3 @@ const MainLayout = () => {
 };
 
 export default MainLayout;
-6

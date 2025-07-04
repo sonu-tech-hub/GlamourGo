@@ -31,14 +31,14 @@ const AdminHeader = () => {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center space-x-2 focus:outline-none"
             >
-              <div className="w-8 h-8 rounded-full bg-[#doa189] flex items-center justify-center text-white">
+              <div className="w-8 h-8 rounded-full bg-[#a38772]  flex items-center justify-center text-white">
                 {user?.user?.name?.charAt(0) || 'A'}
               </div>
               <span className="hidden md:block text-gray-700">{user?.user?.name || 'Admin'}</span>
             </button>
             
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10">
+              <div className="absolute right-0 mt-2 w-48 bg-brown rounded-lg shadow-lg py-2 z-10">
                 <Link
                   to="/admin/profile"
                   className="block px-4 py-2 text-gray-700 hover:bg-[#fef4ea] hover:text-[#doa189]"

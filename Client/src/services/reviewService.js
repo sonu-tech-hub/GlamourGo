@@ -1,23 +1,25 @@
 // client/src/services/reviewService.js
-import api from './api';
+import api from "./api";
 
 // Get reviews for a shop
-export const getShopReviews = async (shopId) => {
-  return api.get(`/shops/${shopId}/reviews`);
+export const getShopReviews = (shopId, params) => {
+  // Example for getShopReviews, assuming it fetches reviews for a specific shop
+  return api.get(`/reviews/shop/${shopId}`, { params });
 };
 
 // Submit a review
 export const submitReview = async (formData) => {
-  return api.post('/reviews', formData, {
+  return api.post("/reviews", formData, {
     headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+      "Content-Type": "multipart/form-data",
+    },
   });
 };
 
 // Reply to a review (for vendors)
-export const replyToReview = async (reviewId, content) => {
-  return api.post(`/reviews/${reviewId}/reply`, { content });
+export const replyToReview = (reviewId, data) => {
+  // data should now be an object like { content: "...", shopId: "..." }
+  return api.post(`/reviews/${reviewId}/response`, data);
 };
 
 // Mark review as helpful
@@ -27,5 +29,5 @@ export const markReviewAsHelpful = async (reviewId) => {
 
 // Get user's reviews
 export const getUserReviews = async () => {
-  return api.get('/reviews/user');
+  return api.get("/reviews/user");
 };

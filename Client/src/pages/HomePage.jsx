@@ -25,6 +25,12 @@ import { GrYoga } from "react-icons/gr"; // GrYoga is correctly imported here
 // --- End React Icons Import ---
 
 import { getPopularShops, getFeaturedShops } from '../services/shopService';
+console.log('featured shops service:', getPopularShops());
+// images 
+import  BG from '../assets/images/bg.jpg'
+import test1 from '../assets/images/testmonial1.jpg';
+import test2 from '../assets/images/testmonial4.jpg';
+import test3 from '../assets/images/testmonial3.jpg';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -162,7 +168,7 @@ const HomePage = () => {
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
-            src="/images/hero-bg.jpg"
+            src={BG} // Ensure this path is correct
             alt="Beauty & Wellness"
             className="w-full h-full object-cover opacity-20"
           />
@@ -502,8 +508,7 @@ const HomePage = () => {
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
                     <img
-                      src="/images/testimonial-1.jpg"
-                      alt="Testimonial"
+                      src={test2}                      alt="Testimonial"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -525,7 +530,7 @@ const HomePage = () => {
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
                     <img
-                      src="/images/testimonial-2.jpg"
+                      src={test1}
                       alt="Testimonial"
                       className="w-full h-full object-cover"
                     />
@@ -548,7 +553,7 @@ const HomePage = () => {
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
                     <img
-                      src="/images/testimonial-3.jpg"
+                     src={test3}
                       alt="Testimonial"
                       className="w-full h-full object-cover"
                     />

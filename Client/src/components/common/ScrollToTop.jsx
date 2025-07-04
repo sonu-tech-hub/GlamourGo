@@ -9,11 +9,12 @@ const ScrollToTop = () => {
       behavior: 'smooth'
     });
   };
-  
+
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-8 right-8 p-3 bg-[#doa189] text-white rounded-full shadow-md hover:bg-[#ecdfcf] transition-colors z-40"
+      // Fixed the typo here: bg-[#d0a189] instead of bg-[#doa189]
+      className="fixed bottom-8 right-8 p-3 bg-[#d0a189] text-white rounded-full shadow-md hover:bg-[#ecdfcf] transition-colors z-40"
       aria-label="Scroll to top"
     >
       <FaArrowUp />

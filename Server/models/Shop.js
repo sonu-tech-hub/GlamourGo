@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 const shopSchema = new mongoose.Schema({
@@ -26,12 +27,11 @@ const shopSchema = new mongoose.Schema({
     state: String,
     zipCode: String,
     country: String,
-    coordinates: {
+    coordinates: { // This is where coordinates are defined
       type: {
         type: String,
         enum: ['Point'],
         default: 'Point',
-        
         required: true
       },
       coordinates: {
@@ -64,7 +64,7 @@ const shopSchema = new mongoose.Schema({
     price: Number,
     category: String
   }],
-  gallery: [{
+  gallery: [{ // This embedded gallery array is updated by your service
     url: String,
     caption: String
   }],
@@ -105,9 +105,8 @@ const shopSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create 2dsphere index on address.coordinates for geospatial queries
-// shopSchema.index({ 'address.coordinates': '2dsphere' });
-shopSchema.index({ coordinates: '2dsphere' });
+// Corrected 2dsphere index: It must point to the actual path of the coordinates field
+shopSchema.index({ 'address.coordinates': '2dsphere' });
 
 
 module.exports = mongoose.model('Shop', shopSchema);

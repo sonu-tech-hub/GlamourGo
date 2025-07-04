@@ -10,9 +10,10 @@ const { auth, isAdmin, shopOwner } = require('../middlewares/authMiddleware');
 router.get('/', shopController.getAllShops);
 router.get('/search', shopController.searchShops);
 router.get('/featured', shopController.getFeaturedShops);
+router.get('/popular', shopController.getAllShops);
 router.get('/favorites', auth , shopController.getFavoriteShops);
 router.get('/nearby',auth, shopController.getNearbyShops);
-router.get('/:shopId', shopController.getShopById); // Keep this LAST among public GETs to avoid shadowing
+router.get('/:shopId',auth, shopController.getShopById); // Keep this LAST among public GETs to avoid shadowing
 
 // ---------------------
 // Shop Owner Routes
@@ -20,7 +21,7 @@ router.get('/:shopId', shopController.getShopById); // Keep this LAST among publ
 router.post('/', auth, shopController.createShop);
 
 router.put('/:shopId', auth, shopOwner, shopController.updateShop);
-router.post('/:shopId/favorite', auth, shopOwner, shopController.toggleFavorite);
+router.post('/:shopId/favorite', auth, shopController.toggleFavorite);
 router.get('/owner/me', auth, shopController.getMyShop);
 router.get('/vendor/shop', auth,shopOwner, serviceController.getVendorServices);
 

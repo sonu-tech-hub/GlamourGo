@@ -31,7 +31,7 @@ const VendorHeader = () => {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center space-x-2 focus:outline-none"
             >
-              <div className="w-8 h-8 rounded-full bg-[#doa189] flex items-center justify-center text-white">
+              <div className="w-8 h-8 rounded-full bg-[#a38772] flex items-center justify-center text-white">
                 {user?.user.name?.charAt(0) || 'V'}
               </div>
               <span className="hidden md:block text-gray-700">{user?.user?.name || 'Vendor'}</span>

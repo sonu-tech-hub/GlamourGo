@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const userService = require('../services/userService');
 const adminService = require('../services/adminService');
 const asyncHandler = require('express-async-handler');
+const User = require('../models/User'); // Adjust path as per your project structure
+const cloudinary = require('../config/cloudinaryConfig'); // Import your Cloudinary configuration   
+
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
@@ -17,6 +20,55 @@ exports.getUserProfile = asyncHandler(async (req, res) => {
 exports.updateUserProfile = asyncHandler(async (req, res) => {
     const updatedUser = await userService.updateUserProfile(req.user.id, req.body);
     res.json(updatedUser);
+});
+
+// --- NEW CONTROLLER FOR PROFILE IMAGE UPLOAD ---
+// @desc    Upload user profile image to Cloudinary
+// @route   POST /api/users/profile/upload-image (We will use this route)
+// @access  Private
+exports.uploadProfileImage = asyncHandler(async (req, res) => {
+    // Check if a file was actually uploaded by Multer
+    if (!req.file) {
+        res.status(400).json({ message: 'No profile image file provided.' });
+        return;
+    }
+
+    const userId = req.user.id; // Assuming authentication middleware populates req.user.id
+    const user = await User.findById(userId);
+
+    if (!user) {
+        res.status(404).json({ message: 'User not found.' });
+        return;
+    }
+
+    try {
+        // Upload image to Cloudinary
+        // req.file.buffer contains the image data from memoryStorage
+        // 'data:image/jpeg;base64,...' is a data URI, which Cloudinary can directly process.
+        const result = await cloudinary.uploader.upload(`data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`, {
+            folder: 'profile', // This is the Cloudinary folder you created for profiles
+            // You can also add a unique public_id if you want to manage images by user ID
+            // public_id: `user-profile-${userId}`,
+            // overwrite: true // If you use public_id, set this to true to update existing image
+        });
+
+        // The secure_url is the HTTPS URL of the uploaded image on Cloudinary
+        const newProfilePictureUrl = result.secure_url;
+
+        // Update the user's profilePicture field in MongoDB
+        user.profilePicture = newProfilePictureUrl;
+        await user.save(); // Save the updated user document
+
+        // Send back the new profile picture URL to the frontend
+        res.status(200).json({
+            message: 'Profile picture uploaded and updated successfully',
+            profilePicture: newProfilePictureUrl // Send this back for frontend update
+        });
+
+    } catch (error) {
+        console.error('Cloudinary upload error:', error);
+        res.status(500).json({ message: 'Failed to upload profile picture. Please try again.', error: error.message });
+    }
 });
 
 // @desc    Change password

@@ -16,7 +16,7 @@ const ServicesPage = () => {
   const { user } = useAuth();
   console.log("user",user)
  const [shopId, setShopId] = useState('');
-
+console.log("shopId",shopId);
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -30,23 +30,35 @@ const ServicesPage = () => {
   const [selectedService, setSelectedService] = useState(null);
   
   useEffect(() => {
-  const fetchShopAndServices = async () => {
+  const fetchVendorShop = async () => {
     try {
-      const shopResponse = await getAllShops(user._id);
-      const fetchedShopId = shopResponse.data.shop._id;
-      console.log("fetchedShopId",fetchedShopId)
-      setShopId(fetchedShopId);
+      const userId = user?.user?.id;
+      const userType = user?.user?.userType;
+
+      if (!userId || userType !== 'vendor') return;
+
+      const response = await getAllShops();
+      const allShops = response.data.shops;
+
+      const vendorShop = allShops.find(shop => shop.owner === userId);
+
+      if (!vendorShop) {
+        toast.error('No shop found for your vendor account.');
+        return;
+      }
+
+      setShopId(vendorShop._id);
     } catch (error) {
       console.error('Failed to fetch shop for vendor:', error);
       toast.error('Unable to find your shop');
     }
   };
 
-  if (user?._id && user?.userType === 'vendor') {
-    fetchShopAndServices();
-  }
+  fetchVendorShop();
 }, [user]);
-  console.log("shopId",user?.user?.shopId);
+
+  
+
   useEffect(() => {
     // Filter services based on category and search query
     let filtered = [...services];
@@ -87,10 +99,16 @@ const ServicesPage = () => {
     setIsLoading(false);
   }
 };
-  
+  useEffect(() => {
+  if (shopId) {
+    fetchServices();
+     console.log('Current shopId state:', shopId);
+  }
+}, [shopId]);
+
   const handleDeleteService = async () => {
     try {
-      await deleteService(selectedService._id);
+      await deleteService(selectedService._id, shopId);
       toast.success('Service deleted successfully');
       fetchServices();
       setIsDeleteModalOpen(false);
@@ -268,19 +286,23 @@ const ServicesPage = () => {
       </div>
       
       {/* Add Service Modal */}
-      <AddServiceModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        shopId={shopId}
-        onServiceAdded={fetchServices}
-        categories={categories}
-        onCategoryAdded={handleCategoryAdded}
-      />
+      {shopId && (
+  <AddServiceModal
+    isOpen={isAddModalOpen}
+    onClose={() => setIsAddModalOpen(false)}
+    shopId={shopId} // ✅ safe now
+    onServiceAdded={fetchServices}
+    categories={categories}
+    onCategoryAdded={handleCategoryAdded}
+  />
+)}
+
       
       {/* Edit Service Modal */}
       {selectedService && (
         <EditServiceModal
           isOpen={isEditModalOpen}
+          shopId={shopId}
           onClose={() => setIsEditModalOpen(false)}
           service={selectedService}
           onServiceUpdated={fetchServices}
@@ -292,6 +314,8 @@ const ServicesPage = () => {
       <ConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
+        shopId={shopId}
+        
         onConfirm={handleDeleteService}
         title="Delete Service"
         message={`Are you sure you want to delete "${selectedService?.name}"? This action cannot be undone.`}

@@ -1,159 +1,153 @@
 // server/services/galleryService.js
-const GalleryItem = require('../models/GalleryItem');
-const Shop = require('../models/Shop');
-const fs = require('fs');
-const path = require('path');
+const GalleryItem = require("../models/GalleryItem");
+const Shop = require("../models/Shop");
 
-// Add gallery items
-exports.addGalleryItems = async ({ shopId, ownerId, title, description, category, tags, featured, imageFiles }) => {
-  // Verify shop ownership
-  const shop = await Shop.findById(shopId);
-  
-  if (!shop) {
-    throw new Error('Shop not found');
-  }
-  
-  if (shop.owner.toString() !== ownerId.toString()) {
-    throw new Error('Unauthorized: You are not the owner of this shop');
-  }
-  
-  // Create gallery items for each image
-  const galleryItems = [];
-  
-  for (const imageFile of imageFiles) {
-    const imageUrl = `/uploads/gallery/${imageFile.filename}`;
-    
-    // Create gallery item
-    const galleryItem = new GalleryItem({
-      shop: shopId,
-      title,
-      description,
-      imageUrl,
-      category,
-      tags,
-      featured
-    });
-    
-    await galleryItem.save();
-    galleryItems.push(galleryItem);
-    
-    // Add to shop's gallery
-    shop.gallery.push({
-      url: imageUrl,
-      caption: title
-    });
-  }
-  
-  await shop.save();
-  
-  return galleryItems;
+class ApiError extends Error {
+    constructor(message, statusCode = 500) {
+        super(message);
+        this.statusCode = statusCode;
+        this.name = this.constructor.name;
+        Error.captureStackTrace(this, this.constructor);
+    }
+}
+
+exports.addGalleryItemsToShop = async (shopId, newGalleryItemsData) => {
+    const shop = await Shop.findById(shopId);
+
+    if (!shop) {
+        throw new ApiError("Shop not found", 404);
+    }
+
+    const createdGalleryItems = [];
+    const shopGalleryUpdates = [];
+
+    for (const itemData of newGalleryItemsData) {
+        const galleryItem = new GalleryItem({
+            shop: shopId,
+            title: itemData.title,
+            description: itemData.description,
+            imageUrl: itemData.imageUrl,
+            publicId: itemData.publicId,
+            category: itemData.category,
+            tags: itemData.tags,
+            featured: itemData.featured,
+            owner: itemData.owner
+        });
+
+        await galleryItem.save();
+        createdGalleryItems.push(galleryItem);
+
+        shopGalleryUpdates.push({
+            url: itemData.imageUrl,
+            caption: itemData.title,
+        });
+    }
+
+    shop.gallery.push(...shopGalleryUpdates);
+    await shop.save();
+
+    return createdGalleryItems;
 };
 
-// Get shop gallery
 exports.getShopGallery = async (shopId, category) => {
-  let query = { shop: shopId };
-  
-  if (category) {
-    query.category = category;
-  }
-  
-  // Fetch gallery items
-  const galleryItems = await GalleryItem.find(query)
-    .sort({ featured: -1, createdAt: -1 });
-  
-  // Get categories
-  const categories = await GalleryItem.distinct('category', { shop: shopId });
-  
-  return { galleryItems, categories };
+    let query = { shop: shopId };
+
+    if (category) {
+        query.category = category;
+    }
+
+    try {
+        const galleryItems = await GalleryItem.find(query).sort({
+            featured: -1,
+            createdAt: -1,
+        });
+        const categories = await GalleryItem.distinct("category", { shop: shopId });
+
+        return { galleryItems, categories };
+    } catch (error) {
+        console.error(
+            `[galleryService] Error fetching gallery for shopId ${shopId}:`,
+            error
+        );
+        throw new ApiError(`Failed to fetch gallery items: ${error.message}`, 500);
+    }
 };
 
-// Update gallery item
-exports.updateGalleryItem = async ({ itemId, ownerId, title, description, category, tags, featured, imageFile }) => {
-  const galleryItem = await GalleryItem.findById(itemId);
-  
-  if (!galleryItem) {
-    throw new Error('Gallery item not found');
-  }
-  
-  // Verify shop ownership
-  const shop = await Shop.findById(galleryItem.shop);
-  
-  if (!shop || shop.owner.toString() !== ownerId.toString()) {
-    throw new Error('Unauthorized: You are not the owner of this shop');
-  }
-  
-  // Update fields
-  if (title) galleryItem.title = title;
-  if (description) galleryItem.description = description;
-  if (category) galleryItem.category = category;
-  if (tags) galleryItem.tags = tags;
-  if (featured !== undefined) galleryItem.featured = featured;
-  
-  // Update image if provided
-  if (imageFile) {
-    // Delete old image
-    const oldImagePath = path.join(__dirname, '..', galleryItem.imageUrl);
-    if (fs.existsSync(oldImagePath)) {
-      fs.unlinkSync(oldImagePath);
-    }
-    
-    // Update with new image
-    const imageUrl = `/uploads/gallery/${imageFile.filename}`;
-    galleryItem.imageUrl = imageUrl;
-    
-    // Update in shop's gallery
-    const galleryIndex = shop.gallery.findIndex(g => g.url === galleryItem.imageUrl);
-    if (galleryIndex !== -1) {
-      shop.gallery[galleryIndex].url = imageUrl;
-      shop.gallery[galleryIndex].caption = title || galleryItem.title;
-      await shop.save();
-    }
-  }
-  
-  await galleryItem.save();
-  
-  return galleryItem;
+exports.getGalleryItemById = async (itemId) => {
+    const galleryItem = await GalleryItem.findById(itemId);
+    return galleryItem;
 };
 
-// Delete gallery item
+exports.updateGalleryItem = async (itemId, ownerId, updateData) => {
+    const galleryItem = await GalleryItem.findById(itemId);
+
+    if (!galleryItem) {
+        throw new ApiError("Gallery item not found", 404);
+    }
+
+    const shop = await Shop.findById(galleryItem.shop);
+
+    if (!shop || shop.owner.toString() !== ownerId.toString()) {
+        throw new ApiError("Unauthorized: You are not the owner of this shop", 403);
+    }
+
+    if (updateData.imageUrl && updateData.publicId) {
+        const oldImageUrl = galleryItem.imageUrl;
+        galleryItem.imageUrl = updateData.imageUrl;
+        galleryItem.publicId = updateData.publicId;
+
+        const galleryIndex = shop.gallery.findIndex((g) => g.url === oldImageUrl);
+        if (galleryIndex !== -1) {
+            shop.gallery[galleryIndex].url = updateData.imageUrl;
+            shop.gallery[galleryIndex].caption = updateData.title || galleryItem.title;
+        } else {
+            shop.gallery.push({
+                url: updateData.imageUrl,
+                caption: updateData.title || galleryItem.title,
+            });
+        }
+    }
+
+    if (updateData.title !== undefined) galleryItem.title = updateData.title;
+    if (updateData.description !== undefined) galleryItem.description = updateData.description;
+    if (updateData.category !== undefined) galleryItem.category = updateData.category;
+    if (updateData.tags !== undefined) galleryItem.tags = updateData.tags;
+    if (updateData.featured !== undefined) galleryItem.featured = updateData.featured;
+
+    await galleryItem.save();
+    await shop.save();
+
+    return galleryItem;
+};
+
 exports.deleteGalleryItem = async (itemId, ownerId) => {
-  const galleryItem = await GalleryItem.findById(itemId);
-  
-  if (!galleryItem) {
-    throw new Error('Gallery item not found');
-  }
-  
-  // Verify shop ownership
-  const shop = await Shop.findById(galleryItem.shop);
-  
-  if (!shop || shop.owner.toString() !== ownerId.toString()) {
-    throw new Error('Unauthorized: You are not the owner of this shop');
-  }
-  
-  // Remove from shop's gallery
-  shop.gallery = shop.gallery.filter(g => g.url !== galleryItem.imageUrl);
-  await shop.save();
-  
-  // Delete the image file
-  const imagePath = path.join(__dirname, '..', galleryItem.imageUrl);
-  if (fs.existsSync(imagePath)) {
-    fs.unlinkSync(imagePath);
-  }
-  
-  // Delete the gallery item
-  await GalleryItem.findByIdAndDelete(itemId);
-  
-  return { success: true };
+    const galleryItem = await GalleryItem.findById(itemId);
+
+    if (!galleryItem) {
+        throw new ApiError("Gallery item not found", 404);
+    }
+
+    const shop = await Shop.findById(galleryItem.shop);
+
+    if (!shop || shop.owner.toString() !== ownerId.toString()) {
+        throw new ApiError("Unauthorized: You are not the owner of this shop", 403);
+    }
+
+    shop.gallery = shop.gallery.filter((g) => g.url !== galleryItem.imageUrl);
+    await shop.save();
+
+    await GalleryItem.findByIdAndDelete(itemId);
+
+    return { success: true };
 };
 
-// Get featured gallery items
 exports.getFeaturedGallery = async (shopId, limit) => {
-  const featuredItems = await GalleryItem.find({
-    shop: shopId,
-    featured: true
-  })
-  .sort({ createdAt: -1 })
-  .limit(Number(limit));
-  
-  return featuredItems;
+    const featuredItems = await GalleryItem.find({
+        shop: shopId,
+        featured: true,
+    })
+        .sort({ createdAt: -1 })
+        .limit(Number(limit));
+
+    return featuredItems;
 };

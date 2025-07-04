@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FaBars, FaSearch, FaBell, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { gsap } from 'gsap';
+import logo from '../../assets/images/logo.png';
 
 const MainNavigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,11 +75,11 @@ const MainNavigation = () => {
           {/* Logo */}
           <Link to="/" id="logo" className="flex items-center">
             <img 
-              src="/logo.png" 
-              alt="Beauty & Wellness" 
+              src={logo} 
+              alt="GlamourGo" 
               className="h-10 mr-2"
             />
-            <span className="text-xl font-bold text-[#a38772]">Beauty & Wellness</span>
+            <span className="text-xl font-bold text-[#11511e]">GlamourGo</span>
           </Link>
           
           {/* Desktop Navigation */}

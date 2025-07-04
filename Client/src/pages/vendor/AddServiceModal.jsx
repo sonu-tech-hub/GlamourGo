@@ -7,6 +7,7 @@ import { createService } from '../../services/serviceService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AddServiceModal = ({ isOpen, onClose, shopId, onServiceAdded, categories, onCategoryAdded }) => {
+  console.log("iidddeee",shopId)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -91,6 +92,7 @@ const AddServiceModal = ({ isOpen, onClose, shopId, onServiceAdded, categories, 
 
       await createService(shopId, serviceData);
       toast.success('Service added successfully');
+      
       onServiceAdded();
       onClose();
     } catch (error) {
@@ -100,7 +102,7 @@ const AddServiceModal = ({ isOpen, onClose, shopId, onServiceAdded, categories, 
       setIsSubmitting(false);
     }
   };
-  console.log("add" ,createService())
+ 
 
   if (!isOpen) return null;
 

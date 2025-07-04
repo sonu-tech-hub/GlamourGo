@@ -6,12 +6,12 @@ import { format } from 'date-fns';
 import { getShopReviews } from '../../services/reviewService';
 import LoadingSpinner from '../common/LoadingSpinner';
 
-const RecentReviews = ({ isLoading: initialLoading }) => {
+const RecentReviews = ({ isLoading: initialLoading,review }) => {
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(initialLoading);
   const [showReplyForm, setShowReplyForm] = useState(null);
   const [replyText, setReplyText] = useState('');
-  
+  console.log('Recent Reviews Loaded', review); // Debugging log to confirm component load
   useEffect(() => {
     const fetchReviews = async () => {
       setIsLoading(true);

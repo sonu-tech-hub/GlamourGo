@@ -32,16 +32,16 @@ const ServiceCard = ({ service, onBookNow }) => {
             {service.isDiscounted ? (
               <div>
                 <span className="text-gray-400 line-through text-sm">₹{service.price}</span>
-                <span className="text-[#doa189] font-bold text-lg ml-2">₹{service.discountedPrice}</span>
+                <span className="text-[#d0a189] font-bold text-lg ml-2">₹{service.discountedPrice}</span>
               </div>
             ) : (
-              <span className="text-[#doa189] font-bold text-lg">₹{service.price}</span>
+              <span className="text-[#d0a189] font-bold text-lg">₹{service.price}</span>
             )}
           </div>
           
           <button
             onClick={() => onBookNow(service)}
-            className="bg-[#doa189] hover:bg-[#ecdfcf] text-white font-medium py-2 px-4 rounded-lg transition-colors"
+            className="bg-[#d0a189] hover:bg-[#ecdfcf] text-white font-medium py-2 px-4 rounded-lg transition-colors"
           >
             Book
           </button>

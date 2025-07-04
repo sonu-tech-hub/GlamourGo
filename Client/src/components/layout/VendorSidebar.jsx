@@ -105,7 +105,7 @@ const VendorSidebar = ({ isOpen, onClose }) => {
         {/* User Info */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-[#doa189] flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-full bg-[#a38772] flex items-center justify-center text-white">
               {user?.user?.name?.charAt(0) || 'U'}
             </div>
             <div className="ml-3">

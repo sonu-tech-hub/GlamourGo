@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import { getAllShopsAdmin } from "../../services/adminService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import ConfirmationModal from "../../components/common/ConfirmationModal";
+console.log("getAllShopsAdmin",getAllShopsAdmin());
 
 const Shops = () => {
   const [shops, setShops] = useState([]);
@@ -27,7 +28,7 @@ const Shops = () => {
   const [selectedShop, setSelectedShop] = useState(null);
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-
+// console.log("shop owner ",shops.owner.name)
   useEffect(() => {
     fetchShops();
   }, []);

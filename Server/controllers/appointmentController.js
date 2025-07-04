@@ -1,292 +1,187 @@
-// controllers/appointmentController.js
-const Appointment = require('../models/Appointment');
-const Shop = require('../models/Shop');
-const User = require('../models/User');
-const { sendAppointmentConfirmation, sendAppointmentReminder } = require('../services/notificationService');
+// server/controllers/appointmentController.js
+const appointmentService = require('../services/appointmentService'); // Import the service layer
 
-// Check available time slots
+/**
+ * GET /api/appointments/available-slots
+ * Checks available time slots for a given shop, service, and date.
+ */
 exports.getAvailableTimeSlots = async (req, res) => {
-  try {
-    const { shopId, serviceId, date } = req.query;
-    
-    // Validate inputs
-    if (!shopId || !serviceId || !date) {
-      return res.status(400).json({ message: 'Missing required parameters' });
-    }
-    
-    // Get shop details
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      return res.status(404).json({ message: 'Shop not found' });
-    }
-    
-    // Get service details
-    const service = shop.services.id(serviceId);
-    if (!service) {
-      return res.status(404).json({ message: 'Service not found' });
-    }
-    
-    const serviceDuration = service.duration;
-    
-    // Get shop operating hours for the selected date
-    const selectedDate = new Date(date);
-    const dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][selectedDate.getDay()];
-    
-    const operatingHours = shop.operatingHours.find(oh => oh.day === dayOfWeek);
-    if (!operatingHours || operatingHours.isClosed) {
-      return res.json({ availableSlots: [], message: 'Shop is closed on this day' });
-    }
-    
-    // Convert shop hours to minutes since midnight for easier calculations
-    const shopOpenMinutes = convertTimeToMinutes(operatingHours.open);
-    const shopCloseMinutes = convertTimeToMinutes(operatingHours.close);
-    
-    // Get existing appointments for the selected date
-    const existingAppointments = await Appointment.find({
-      shop: shopId,
-      date: {
-        $gte: new Date(selectedDate.setHours(0, 0, 0)),
-        $lt: new Date(selectedDate.setHours(23, 59, 59))
-      },
-      status: { $in: ['pending', 'confirmed'] }
-    });
-    
-    // Create array of all possible time slots
-    const timeSlots = [];
-    for (let minutes = shopOpenMinutes; minutes <= shopCloseMinutes - serviceDuration; minutes += 30) {
-      const slotStartTime = convertMinutesToTime(minutes);
-      const slotEndTime = convertMinutesToTime(minutes + serviceDuration);
-      
-      timeSlots.push({
-        startTime: slotStartTime,
-        endTime: slotEndTime,
-        available: true
-      });
-    }
-    
-    // Mark booked slots as unavailable
-    existingAppointments.forEach(appointment => {
-      const apptStartMinutes = convertTimeToMinutes(appointment.startTime);
-      const apptEndMinutes = convertTimeToMinutes(appointment.endTime);
-      
-      timeSlots.forEach(slot => {
-        const slotStartMinutes = convertTimeToMinutes(slot.startTime);
-        const slotEndMinutes = convertTimeToMinutes(slot.endTime);
-        
-        // Check if this slot overlaps with the appointment
-        if (
-          (slotStartMinutes >= apptStartMinutes && slotStartMinutes < apptEndMinutes) ||
-          (slotEndMinutes > apptStartMinutes && slotEndMinutes <= apptEndMinutes) ||
-          (slotStartMinutes <= apptStartMinutes && slotEndMinutes >= apptEndMinutes)
-        ) {
-          slot.available = false;
+    try {
+        const { shopId, serviceId, date } = req.query;
+
+        // Basic input validation: check for presence.
+        if (!shopId || !serviceId || !date) {
+            return res.status(400).json({ message: 'Missing required query parameters: shopId, serviceId, and date.' });
         }
-      });
-    });
-    
-    // Filter out unavailable slots
-    const availableSlots = timeSlots.filter(slot => slot.available);
-    
-    res.json({ availableSlots });
-  } catch (error) {
-    console.error('Error fetching available time slots:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
+
+        const { availableSlots, message } = await appointmentService.getAvailableTimeSlots(shopId, serviceId, date);
+
+        if (message) {
+            // This case indicates shop is closed, which is an expected scenario, not an error.
+            return res.json({ availableSlots, message });
+        }
+
+        res.json({ availableSlots });
+    } catch (error) {
+        console.error('Error in getAvailableTimeSlots controller:', error.message);
+        // Differentiate errors for better client handling
+        if (error.message.includes('Shop not found') || error.message.includes('Service not found')) {
+            return res.status(404).json({ message: error.message });
+        }
+        res.status(500).json({ message: 'Failed to retrieve available time slots. Please try again later.' });
+    }
 };
 
-// Create new appointment
+/**
+ * POST /api/appointments
+ * Creates a new appointment.
+ */
 exports.createAppointment = async (req, res) => {
-  try {
-    const {
-      shopId,
-      serviceId,
-      staffId,
-      date,
-      startTime,
-      endTime,
-      notes,
-      paymentMethod
-    } = req.body;
-    
-    const userId = req.user.id; // From auth middleware
-    
-    // Validate inputs
-    if (!shopId || !serviceId || !date || !startTime || !endTime) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    try {
+        const appointmentData = req.body;
+        const userId = req.user.id; // Assuming req.user.id is populated by an authentication middleware
+
+        // Basic validation for essential fields at the controller level
+        if (!appointmentData.shopId || !appointmentData.serviceId || !appointmentData.date || !appointmentData.startTime || !appointmentData.endTime) {
+            return res.status(400).json({ message: 'Missing required fields for appointment creation.' });
+        }
+
+        const newAppointment = await appointmentService.createAppointment(appointmentData, userId);
+
+        res.status(201).json({
+            message: 'Appointment booked successfully!',
+            appointment: newAppointment
+        });
+    } catch (error) {
+        console.error('Error in createAppointment controller:', error.message);
+        // Differentiate errors for better client handling
+        if (error.message.includes('Shop not found') || error.message.includes('Service not found') || error.message.includes('Selected time slot is not available')) {
+            return res.status(400).json({ message: error.message }); // Bad request due to invalid input/slot
+        }
+        res.status(500).json({ message: 'Failed to book appointment. Please try again later.' });
     }
-    
-    // Get shop and service details
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      return res.status(404).json({ message: 'Shop not found' });
-    }
-    
-    const service = shop.services.id(serviceId);
-    if (!service) {
-      return res.status(404).json({ message: 'Service not found' });
-    }
-    
-    // Get staff details if provided
-    let staffInfo = {};
-    if (staffId) {
-      const staff = shop.staff.id(staffId);
-      if (staff) {
-        staffInfo = {
-          id: staff._id,
-          name: staff.name
-        };
-      }
-    }
-    
-    // Create new appointment
-    const appointment = new Appointment({
-      user: userId,
-      shop: shopId,
-      service: {
-        id: service._id,
-        name: service.name,
-        duration: service.duration,
-        price: service.price
-      },
-      staff: staffInfo,
-      date: new Date(date),
-      startTime,
-      endTime,
-      notes,
-      payment: {
-        amount: service.price,
-        method: paymentMethod || 'offline',
-        status: paymentMethod === 'online' ? 'completed' : 'pending'
-      },
-      status: paymentMethod === 'online' ? 'confirmed' : 'pending'
-    });
-    
-    await appointment.save();
-    
-    // Send confirmation notification
-    await sendAppointmentConfirmation(userId, appointment._id);
-    
-    // Schedule reminder for 24 hours before appointment
-    const reminderDate = new Date(date);
-    reminderDate.setDate(reminderDate.getDate() - 1);
-    
-    // In a production app, you would use a job scheduler like Agenda, Bull, etc.
-    // For simplicity, we're just logging this action
-    console.log(`Reminder scheduled for ${reminderDate}`);
-    
-    res.status(201).json({
-      message: 'Appointment booked successfully',
-      appointment
-    });
-  } catch (error) {
-    console.error('Error creating appointment:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
 };
 
-// Helper functions
-function convertTimeToMinutes(timeString) {
-  const [hours, minutes] = timeString.split(':').map(Number);
-  return hours * 60 + minutes;
-}
-
-function convertMinutesToTime(minutes) {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-}
-// Get user's appointments
+/**
+ * GET /api/appointments/user
+ * Gets all appointments for the authenticated user.
+ */
 exports.getUserAppointments = async (req, res) => {
-  try {
-    const userId = req.user.id; // From auth middleware
-    const appointments = await Appointment.find({ user: userId })
-      .populate('shop', 'name') // Populate shop details
-      .sort({ date: 1, startTime: 1 }); // Sort by date and time
-    res.json(appointments);
-  } catch (error) {
-    console.error('Error fetching user appointments:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-exports.getShopAppointments = async (req, res) => {
-  try {
-    const { shopId } = req.params;
-    // Add middleware to ensure the user is authorized to view these appointments
-
-    const appointments = await Appointment.find({ shop: shopId })
-      .populate('user', 'name') // Populate user details
-      .sort({ date: 1, startTime: 1 });
-    res.json(appointments);
-  } catch (error) {
-    console.error('Error fetching shop appointments:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-};
-exports.getAppointmentById = async (req, res) => {
-  try {
-    const { appointmentId } = req.params;
-    const appointment = await Appointment.findById(appointmentId)
-      .populate('user', 'name') // Populate user details
-      .populate('shop', 'name') // Populate shop details
-      .populate('staff', 'name'); // Populate staff details if available
-    if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' });
+    try {
+        const userId = req.user.id; // From auth middleware
+        const appointments = await appointmentService.getUserAppointments(userId);
+        res.json(appointments);
+    } catch (error) {
+        console.error('Error in getUserAppointments controller:', error.message);
+        res.status(500).json({ message: 'Failed to retrieve user appointments.' });
     }
-    res.json(appointment);
-  } catch (error) {
-    console.error('Error fetching appointment by ID:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
 };
-// Update appointment status
+
+/**
+ * GET /api/shops/:shopId/appointments
+ * Gets all appointments for a specific shop (requires shop owner authorization).
+ */
+exports.getShopAppointments = async (req, res) => {
+    try {
+        const shopId = req.params.shopId; // Get shopId from URL parameters
+
+        // Basic validation for shopId
+        if (!shopId) {
+            return res.status(400).json({ message: 'Shop ID is required.' });
+        }
+
+        // Call your backend service to fetch appointments
+        const appointments = await appointmentService.getShopAppointments(shopId);
+
+        // *** THE CRITICAL FIX IS HERE ***
+        // Ensure the response is wrapped in an object with the 'appointments' key
+        return res.status(200).json({
+            message: 'Shop appointments fetched successfully',
+            appointments: appointments // Make sure the array is under 'appointments' key
+        });
+
+    } catch (error) {
+        console.error("Error in getShopAppointments controller:", error);
+        // Provide a more informative error message if possible
+        return res.status(500).json({ message: error.message || 'Server error fetching shop appointments.' });
+    }
+};
+
+/**
+ * GET /api/appointments/:appointmentId
+ * Gets a single appointment by ID (requires user/shop owner authorization).
+ */
+exports.getAppointmentById = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.user.id; // From auth middleware, for authorization check in service
+
+        const appointment = await appointmentService.getAppointmentById(appointmentId, userId);
+        res.json(appointment);
+    } catch (error) {
+        console.error('Error in getAppointmentById controller:', error.message);
+        if (error.message.includes('Appointment not found')) {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message.includes('Unauthorized')) {
+            return res.status(403).json({ message: error.message }); // Forbidden
+        }
+        res.status(500).json({ message: 'Failed to retrieve appointment details.' });
+    }
+};
+
+/**
+ * PUT /api/appointments/:appointmentId/status
+ * Updates the status of an appointment.
+ */
 exports.updateAppointmentStatus = async (req, res) => {
-  try {
-      const { appointmentId } = req.params;
-      const { status } = req.body;
-      const userId = req.user.id; // From auth middleware (likely for authorization checks)
+    try {
+        const { appointmentId } = req.params;
+        const { status } = req.body;
+        const userId = req.user.id; // From auth middleware, for authorization check in service
 
-      // Validate the status (you might want to define allowed status values)
-      const allowedStatuses = ['pending', 'confirmed', 'completed', 'cancelled', 'rejected'];
-      if (!allowedStatuses.includes(status)) {
-          return res.status(400).json({ message: 'Invalid appointment status' });
-      }
+        // Basic status validation at controller level (allowed values)
+        const allowedStatuses = ['pending', 'confirmed', 'completed', 'cancelled', 'no-show', 'rejected'];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid appointment status provided.' });
+        }
 
-      const appointment = await Appointment.findById(appointmentId);
-      if (!appointment) {
-          return res.status(404).json({ message: 'Appointment not found' });
-      }
+        const updatedAppointment = await appointmentService.updateAppointmentStatus(appointmentId, status, userId);
 
-      // Implement authorization logic here if needed
-      // For example, only shop owners might be allowed to confirm or complete appointments
-
-      appointment.status = status;
-      await appointment.save();
-
-      res.json({ message: 'Appointment status updated successfully', appointment });
-
-  } catch (error) {
-      console.error('Error updating appointment status:', error);
-      res.status(500).json({ message: 'Server error' });
-  }
+        res.json({ message: 'Appointment status updated successfully.', appointment: updatedAppointment });
+    } catch (error) {
+        console.error('Error in updateAppointmentStatus controller:', error.message);
+        if (error.message.includes('Appointment not found')) {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message.includes('Unauthorized') || error.message.includes('Cannot change status') || error.message.includes('Only the shop owner can mark appointments')) {
+            // Specific errors from service indicate business rule violation or auth failure
+            return res.status(403).json({ message: error.message }); // Forbidden
+        }
+        res.status(500).json({ message: 'Failed to update appointment status. Please try again later.' });
+    }
 };
-// Cancel appointment
+
+/**
+ * PUT /api/appointments/:appointmentId/cancel
+ * Cancels an appointment. Delegates to updateAppointmentStatus in service.
+ */
 exports.cancelAppointment = async (req, res) => {
-  try {
-      const { appointmentId } = req.params;
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.user.id; // From auth middleware
 
-      const updatedAppointment = await Appointment.findByIdAndUpdate(
-          appointmentId,
-          { status: 'cancelled' },
-          { new: true }
-      );
+        const cancelledAppointment = await appointmentService.cancelAppointment(appointmentId, userId);
 
-      if (!updatedAppointment) {
-          return res.status(404).json({ message: 'Appointment not found' });
-      }
-
-      res.json({ message: 'Appointment cancelled successfully', appointment: updatedAppointment });
-  } catch (error) {
-      console.error('Error cancelling appointment:', error);
-      res.status(500).json({ message: 'Server error' });
-  }
+        res.json({ message: 'Appointment cancelled successfully.', appointment: cancelledAppointment });
+    } catch (error) {
+        console.error('Error in cancelAppointment controller:', error.message);
+        if (error.message.includes('Appointment not found')) {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message.includes('Unauthorized') || error.message.includes('Cannot change status')) {
+            return res.status(403).json({ message: error.message }); // Forbidden
+        }
+        res.status(500).json({ message: 'Failed to cancel appointment. Please try again later.' });
+    }
 };

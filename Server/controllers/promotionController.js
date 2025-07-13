@@ -73,14 +73,13 @@ exports.updatePromotion = async (req, res) => {
   try {
     const { promotionId } = req.params;
     const ownerId = req.user._id;
-
-    // Ensure updatedData is not empty
     const updatedData = req.body;
+    
     if (!promotionId || !ownerId || !updatedData || Object.keys(updatedData).length === 0) {
       return res.status(400).json({ message: 'Missing promotion ID, owner ID, or update data.' });
     }
 
-    const promotion = await promotionService.updatePromotion(promotionId, updatedData, ownerId);
+    const promotion = await promotionService.updatePromotion(promotionId,ownerId, updatedData);
 
     res.json({
       message: 'Promotion updated successfully',

@@ -68,8 +68,15 @@ public/
 .tern-port
 
 # Environment files
+/Server/.env
+/Server/.env.*  # ignore server env variants
+
+# Allow env examples
+!/server/.env.example
+
+# Root-level env files
 .env
-.env.*
+.env.* 
 !.env.example
 
 # Database files
@@ -103,24 +110,6 @@ frontend/dist/
 *.njsproj
 *.sln
 
-# Test coverage
-coverage/
-
-# Local env overrides
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Mac system files
-*.DS_Store
-
-# Linux Trash
-.Trash-*
-
-# JetBrains Rider
-.idea/
-
 # Firebase
 .firebase/
 
@@ -136,5 +125,5 @@ coverage/
 # Optional stylelint cache
 .stylelintcache
 
-# dotenv override
-!.env.example
+# Linux Trash
+.Trash-*

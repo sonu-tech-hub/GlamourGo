@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect } from 'react';
 import { FaTimes, FaCamera, FaTag, FaCheckCircle, FaPlus } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+// Import image compression library
+import imageCompression from 'browser-image-compression';
 
-// IMPORTANT: Renamed updateGalleryItem from service to avoid conflict with local function
-import { addGalleryItems, updateGalleryItem as updateGalleryItemApi } from '../../services/galleryService'; // Renamed from galleryApi
+import { addGalleryItems, updateGalleryItem as updateGalleryItemApi } from '../../services/galleryService';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const AddEditGalleryItemModal = ({
@@ -75,7 +76,8 @@ const AddEditGalleryItemModal = ({
         }));
     };
 
-    const handleFileChange = (e) => {
+    // --- NEW / UPDATED: handleFileChange with Compression ---
+    const handleFileChange = async (e) => { // Made async
         const files = Array.from(e.target.files);
 
         // Revoke previous object URL if it exists to prevent memory leaks
@@ -85,18 +87,51 @@ const AddEditGalleryItemModal = ({
 
         if (isEditMode) {
             const file = files[0] || null;
-            setFormData((prev) => ({ ...prev, imageFile: file }));
-            // If a new file is selected, preview it. Otherwise, keep the existing imageUrl.
-            setPreviewImage(file ? URL.createObjectURL(file) : (itemToEdit?.imageUrl || null));
-        } else {
-            setFormData((prev) => ({ ...prev, imageFiles: files }));
-            if (files.length > 0) {
-                setPreviewImage(URL.createObjectURL(files[0])); // Show preview of the first selected image
+            if (file) {
+                try {
+                    // Compress single image for edit mode
+                    const compressedFile = await imageCompression(file, {
+                        maxSizeMB: 1, // Max file size in MB
+                        maxWidthOrHeight: 1920, // Max width or height
+                        useWebWorker: true, // Use web worker for better performance
+                    });
+                    setFormData((prev) => ({ ...prev, imageFile: compressedFile }));
+                    setPreviewImage(URL.createObjectURL(compressedFile));
+                } catch (compressionError) {
+                    console.error("Image compression error (edit mode):", compressionError);
+                    toast.error("Failed to compress image. Please try a different file.");
+                    setFormData((prev) => ({ ...prev, imageFile: null })); // Clear selected file on error
+                    setPreviewImage(itemToEdit?.imageUrl || null); // Revert to old preview or null
+                }
             } else {
-                setPreviewImage(null); // No files selected, clear preview
+                setFormData((prev) => ({ ...prev, imageFile: null }));
+                setPreviewImage(itemToEdit?.imageUrl || null); // No new file, keep existing or null
+            }
+        } else { // Add mode (multiple files)
+            const compressedFilesArray = [];
+            for (const file of files) {
+                try {
+                    const compressedFile = await imageCompression(file, {
+                        maxSizeMB: 1, // Max file size in MB
+                        maxWidthOrHeight: 1920, // Max width or height
+                        useWebWorker: true, // Use web worker for better performance
+                    });
+                    compressedFilesArray.push(compressedFile);
+                } catch (compressionError) {
+                    console.error(`Image compression error for ${file.name}:`, compressionError);
+                    toast.error(`Failed to compress ${file.name}. It will not be uploaded.`);
+                    // Optionally, you could skip this file or stop the process
+                }
+            }
+            setFormData((prev) => ({ ...prev, imageFiles: compressedFilesArray }));
+            if (compressedFilesArray.length > 0) {
+                setPreviewImage(URL.createObjectURL(compressedFilesArray[0])); // Show preview of the first selected image
+            } else {
+                setPreviewImage(null); // No files selected or all failed compression, clear preview
             }
         }
     };
+    // --- END NEW / UPDATED: handleFileChange with Compression ---
 
     const addNewCategory = () => {
         if (!newCategory.trim()) {
@@ -151,7 +186,7 @@ const AddEditGalleryItemModal = ({
             formUploadData.append('shop', shopId);
 
             // Log FormData contents for debugging
-            console.log('Sending FormData:');
+            
             for (let [key, value] of formUploadData.entries()) {
                 if (value instanceof File) {
                     console.log(`${key}: File Name - ${value.name}, Size - ${value.size} bytes, Type - ${value.type}`);
@@ -164,8 +199,8 @@ const AddEditGalleryItemModal = ({
                 if (formData.imageFile) {
                     formUploadData.append('image', formData.imageFile); // 'image' is the field name for single file update
                 }
-                // Corrected call: Pass itemId and then the FormData object directly
-                await updateGalleryItemApi(itemToEdit._id, formUploadData);
+                // Corrected call: Pass itemId and then the FormData object directly, and shopId
+                await updateGalleryItemApi(itemToEdit._id, formUploadData, shopId); // Pass shopId here
                 toast.success('Gallery item updated successfully!');
             } else {
                 formData.imageFiles.forEach((file) => {
@@ -183,8 +218,11 @@ const AddEditGalleryItemModal = ({
             if (error.response) {
                 console.error('Backend error response:', error.response.data);
                 toast.error(error.response.data.message || 'Failed to save gallery item. Please check the form.');
+            } else if (error.message.includes('timeout') || error.code === 'ECONNABORTED') { // Specific timeout check
+                toast.error('The request timed out. The image might be too large or your connection is slow. Please try again or with a smaller image.');
             } else {
-                toast.error('Network error or server unreachable. Please try again.');
+                // This covers the generic "Network error or server unreachable"
+                toast.error('Network error or server unreachable. Please check your internet connection and try again.');
             }
         } finally {
             setIsSubmitting(false);
@@ -232,7 +270,7 @@ const AddEditGalleryItemModal = ({
                         )}
                         {!isEditMode && !previewImage && (
                             <p className="text-sm text-gray-500 mt-2">
-                                Accepts up to 5 image files (JPG, PNG, GIF). Max 5MB per image.
+                                Accepts up to 5 image files (JPG, PNG, GIF). Max 5MB per image. (Recommended: images will be compressed to ~1MB)
                             </p>
                         )}
                     </div>

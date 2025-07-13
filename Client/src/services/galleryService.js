@@ -11,9 +11,9 @@ import api from './api'; // Assuming 'api' is your configured Axios instance
  * @returns {Promise<object>} A promise that resolves to the newly created gallery items.
  */
 export const addGalleryItems = async (shopId, formData) => {
-    // formData should already contain the 'shop' field (value = shopId), images, and other fields.
-    // Axios will automatically set 'Content-Type': 'multipart/form-data'
-    return api.post(`/gallery/shops/${shopId}`, formData);
+  // formData should already contain the 'shop' field (value = shopId), images, and other fields.
+  // Axios will automatically set 'Content-Type': 'multipart/form-data'
+  return api.post(`/gallery/shops/${shopId}`, formData);
 };
 
 /**
@@ -24,8 +24,8 @@ export const addGalleryItems = async (shopId, formData) => {
  * @returns {Promise<object>} A promise that resolves to an object containing galleryItems and categories.
  */
 export const getShopGallery = async (shopId, category) => {
-    const params = category ? { params: { category } } : {};
-    return api.get(`/gallery/shops/${shopId}`, params);
+  const params = category ? { params: { category } } : {};
+  return api.get(`/gallery/shops/${shopId}`, params);
 };
 
 /**
@@ -34,13 +34,14 @@ export const getShopGallery = async (shopId, category) => {
  * @param {string} itemId - The ID of the gallery item to update.
  * @param {FormData} formData - A FormData object containing the updated data.
  * Can include 'title', 'description', 'category', 'tags', 'featured', and 'image' (single File object).
- * Crucially, it MUST also contain 'shop' appended within the FormData for backend authorization.
+ * Crucially, it MUST also contain 'shop' appended within the FormData.
  * @returns {Promise<object>} A promise that resolves to the updated gallery item object.
  */
 export const updateGalleryItem = async (itemId, formData) => { // ACCEPT FormData directly
-    // formData should already contain the 'shop' field (value = shopId), image (if new), and other fields.
-    // Axios will automatically set 'Content-Type': 'multipart/form-data'
-    return api.put(`/gallery/${itemId}`, formData);
+  // formData should already contain the 'shop' field (value = shopId), image (if new), and other fields.
+  // Axios will automatically set 'Content-Type': 'multipart/form-data'
+  
+  return api.put(`/gallery/${itemId}`, formData);
 };
 
 /**
@@ -52,7 +53,7 @@ export const updateGalleryItem = async (itemId, formData) => { // ACCEPT FormDat
  */
 export const deleteGalleryItem = async (itemId, shopId) => {
     const response = await api.delete(`/gallery/${itemId}`, {
-        params: { shopId }, // Correctly pass shopId as a query parameter
+        params: { shopId },
     });
     return response.data;
 };
@@ -65,6 +66,6 @@ export const deleteGalleryItem = async (itemId, shopId) => {
  * @returns {Promise<Array<object>>} A promise that resolves to an array of featured gallery items.
  */
 export const getFeaturedGallery = async (shopId, limit = 10) => {
-    const params = { params: { limit } };
-    return api.get(`/gallery/shops/${shopId}/featured`, params);
+  const params = { params: { limit } };
+  return api.get(`/gallery/shops/${shopId}/featured`, params);
 };

@@ -1,4 +1,5 @@
 // client/src/services/promotionService.js
+
 import api from './api'; // Assuming 'api' is your configured Axios instance
 
 /**
@@ -29,27 +30,35 @@ export const getShopPromotionsForOwner = async (shopId, status) => {
  * Intended for shop owners.
  * @param {string} promotionId - The ID of the promotion to update.
  * @param {object} updatedData - The data to update the promotion with.
+ * @param {string} data
  * @returns {Promise<object>} A promise that resolves to the updated promotion object.
  */
-export const updatePromotion = async (promotionId, updatedData, data) => {
-  // Assumes your routes are mounted under '/promotions' prefix, e.g., /api/promotions/:promotionId
-  return api.put(`/promotions/${promotionId}`, {
-    ...updatedData,
-    data: data // Pass any additional data if needed, like shopId
-  });
+export const updatePromotion = async (promotionId, updatedData, shopId) => {
+    const payload = { ...updatedData };
+    // This is a workaround. If the backend's PUT route is misconfigured and
+    // hitting the POST (create) endpoint, it might expect 'shop' in the body.
+    // The ideal RESTful approach is for the backend to derive shopId from the promotion itself.
+    if (shopId) {
+        payload.shop = shopId;
+    }
+    return api.put(`/promotions/${promotionId}`, payload);
 };
 /**
  * Deletes a promotion.
  * Intended for shop owners.
  * @param {string} promotionId - The ID of the promotion to delete.
  * @returns {Promise<object>} A promise that resolves to a success message.
+ * @param {string} shopId
  */
-export const deletePromotion = async (promotionId,data) => {
+export const deletePromotion = async (promotionId,shopId) => {
   // Assumes your routes are mounted under '/promotions' prefix, e.g., /api/promotions/:promotionId
-  return api.delete(`/promotions/${promotionId}`, {
-    data: data // Pass any additional data if needed, like shopId
+  console.log("delete",shopId)
+  const responce = api.delete(`/promotions/${promotionId}`, {
+     params: { shopId }, // Pass any additional data if needed, like shopId
   });
+  return responce.data
 };
+
 // console.log('Promotion service loaded',deletePromotion()); // Debugging log to confirm service load
 /**
  * Validates a promotion code for a given shop and transaction details.

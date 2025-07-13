@@ -82,7 +82,7 @@ exports.getShopPromotions = async (shopId, status) => {
  * @returns {Promise<object>} The updated promotion object.
  * @throws {Error} If the promotion or shop is not found, or the user is not authorized.
  */
-exports.updatePromotion = async (promotionId, updatedData, ownerId) => {
+exports.updatePromotion = async (promotionId,ownerId, updatedData ) => {
   let promotion = await Promotion.findById(promotionId);
 
   if (!promotion) {

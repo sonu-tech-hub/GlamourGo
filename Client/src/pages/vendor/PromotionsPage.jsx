@@ -34,7 +34,7 @@ const AddEditPromotionModal = ({ isOpen, onClose, onSave, promotion, shopId, isS
         applicableServices: [],
     });
     const [formErrors, setFormErrors] = useState({});
-
+    
     useEffect(() => {
         if (isOpen && isEditing && promotion) {
             setFormData({
@@ -467,10 +467,12 @@ const PromotionsPage = () => {
         }
         setIsProcessing(true);
         try {
+            
             if (isEditing) {
                 // Ensure promotionData is sent as the body, and shopId as part of path or query if needed
                 // Assuming updatePromotion service function takes (promotionId, updatedData, shopId)
-                await updatePromotion(promotionId, {...promotionData, shopId}); // Corrected: passing promotionData directly
+                
+                await updatePromotion(promotionId, promotionData,shopId); // Corrected: passing promotionData directly
                 toast.success('Promotion updated successfully!');
             } else {
                 await createPromotion(shopId, promotionData);
@@ -497,7 +499,7 @@ const PromotionsPage = () => {
 
         setIsProcessing(true);
         try {
-            await deletePromotion(selectedPromotion._id, { shopId });
+            await deletePromotion(selectedPromotion._id,  shopId );
             toast.success('Promotion deleted successfully!');
             setIsConfirmDeleteModalOpen(false);
             await fetchPromotions();

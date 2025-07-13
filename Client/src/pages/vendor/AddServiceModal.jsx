@@ -7,7 +7,7 @@ import { createService } from '../../services/serviceService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AddServiceModal = ({ isOpen, onClose, shopId, onServiceAdded, categories, onCategoryAdded }) => {
-  console.log("iidddeee",shopId)
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',

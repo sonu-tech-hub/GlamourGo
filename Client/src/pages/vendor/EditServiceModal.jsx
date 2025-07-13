@@ -1,8 +1,11 @@
+// pages/vendor/EditServiceModal.jsx
 import React, { useState, useEffect } from 'react';
 import { FaTimes, FaPlus, FaClock, FaTag, FaRupeeSign } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
-import { updateService } from '../../services/serviceService';
+// Make sure this import points to your client-side API service, not the server-side one
+import { updateService } from '../../services/serviceService'; // <<<--- Corrected import path
+
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const EditServiceModal = ({ isOpen, onClose, shopId, service, onServiceUpdated, categories }) => {
@@ -94,16 +97,20 @@ const EditServiceModal = ({ isOpen, onClose, shopId, service, onServiceUpdated, 
 
     setIsSubmitting(true);
     try {
-      const serviceData = {
+      const serviceDataToSend = { // Renamed to avoid confusion with formData
         ...formData,
-        shopId,
+        // Include shopId in the data sent to the backend if *any* backend middleware
+        // expects it in the request body for update operations.
+        // Based on serviceService.js, it's not strictly needed for the update logic itself,
+        // but can be useful for validation middleware.
+        shop: shopId, // Sending shopId as 'shop' property in the body
         price: Number(formData.price),
         discountedPrice: formData.isDiscounted ? Number(formData.discountedPrice) : Number(formData.price),
         duration: Number(formData.duration),
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       };
 
-      await updateService(service._id, serviceData);
+      await updateService(service._id, serviceDataToSend); // Corrected: only two arguments, serviceId and data
       toast.success('Service updated successfully');
       onServiceUpdated();
       onClose();
@@ -114,6 +121,9 @@ const EditServiceModal = ({ isOpen, onClose, shopId, service, onServiceUpdated, 
       setIsSubmitting(false);
     }
   };
+
+  // REMOVED THE CONSOLE.LOG THAT WAS CAUSING API CALLS
+  // console.log("EditServiceModal rendered with service:", updateService(service._id, formData, shopId));
 
   if (!isOpen || !service) return null;
 

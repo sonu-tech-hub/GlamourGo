@@ -15,6 +15,11 @@ const createService = async (serviceData, shopId, ownerId) => {
   const service = new Service({ ...serviceData, shop: shopId });
   await service.save();
 
+  // It's generally better to only store essential IDs or summary info in embedded arrays.
+  // Pushing the full service object (even if select fields) creates data duplication.
+  // Consider if `shop.services` should just store `service._id` and `service.name`
+  // or be removed entirely if you always query services by `shop` field.
+  // For now, keeping it as is, but noting it as a potential optimization/design choice.
   shop.services.push({
     _id: service._id,
     name: service.name,
@@ -49,14 +54,20 @@ const updateService = async (serviceId, updatedData, ownerId) => {
   const service = await Service.findById(serviceId);
   if (!service) throw new Error('Service not found');
 
-  const shop = await Shop.findById(service.shop);
+  const shop = await Shop.findById(service.shop); // This line correctly finds the shop using service.shop
   if (!shop || shop.owner.toString() !== ownerId) throw new Error('Unauthorized');
+
+  // Ensure updatedData does not overwrite immutable fields like 'shop' if it's unintentionally sent.
+  // MongoDB will generally ignore it if it's not modifiable by schema or not present in $set.
+  // However, explicitly preventing it can be safer:
+  delete updatedData.shop; // Ensure 'shop' field from frontend is not directly used for update if it came in.
 
   Object.keys(updatedData).forEach(field => {
     service[field] = updatedData[field];
   });
   await service.save();
 
+  // Update the embedded service copy in the shop document as well.
   const idx = shop.services.findIndex(s => s._id.toString() === serviceId);
   if (idx !== -1) {
     shop.services[idx] = {
@@ -65,6 +76,7 @@ const updateService = async (serviceId, updatedData, ownerId) => {
       description: service.description,
       duration: service.duration,
       price: service.price,
+      
     };
     await shop.save();
   }
@@ -90,9 +102,11 @@ const deleteService = async (serviceId, ownerId) => {
     throw new Error('Cannot delete service with upcoming appointments');
   }
 
+  // Remove from the embedded array in shop
   shop.services = shop.services.filter(s => s._id.toString() !== serviceId);
   await shop.save();
 
+  // Delete the service document itself
   await Service.findByIdAndDelete(serviceId);
 
   return { success: true };

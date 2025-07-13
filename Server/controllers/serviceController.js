@@ -1,11 +1,12 @@
+// server/controllers/serviceController.js
 const serviceService = require('../services/serviceService');
-const Shop = require('../models/Shop');
-const Service = require('../models/Service');
+const Shop = require('../models/Shop'); // Not directly used in the controller, but fine to keep for reference
+const Service = require('../models/Service'); // Not directly used in the controller, but fine to keep for reference
 
 exports.createService = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const shopId = req.params.shopId;
+    const shopId = req.params.shopId; // Assumes shopId is in URL for creation
     const serviceData = req.body;
 
     const service = await serviceService.createService(serviceData, shopId, ownerId);
@@ -13,13 +14,14 @@ exports.createService = async (req, res) => {
     res.status(201).json({ message: 'Service created successfully', service });
   } catch (error) {
     console.error('Error creating service:', error);
-    res.status(500).json({ message: error.message || 'Server error' });
+    // Be more specific with status codes based on error type if possible
+    res.status(error.message.includes('Shop not found') || error.message.includes('Unauthorized') ? 404 : 500).json({ message: error.message || 'Server error' });
   }
 };
 
 exports.getShopServices = async (req, res) => {
   try {
-    const shopId = req.params.shopId;
+    const shopId = req.params.shopId; // Matches frontend serviceApi.js: /services/shop/:shopId
     const category = req.query.category;
 
     const result = await serviceService.getShopServices(shopId, category);
@@ -35,13 +37,20 @@ exports.updateService = async (req, res) => {
   try {
     const serviceId = req.params.serviceId;
     const ownerId = req.user.id;
-    const updatedData = req.body;
+    const updatedData = req.body; // updatedData will now contain `shop` if sent from frontend
 
     const service = await serviceService.updateService(serviceId, updatedData, ownerId);
 
     res.json({ message: 'Service updated successfully', service });
   } catch (error) {
     console.error('Error updating service:', error);
+    // More specific error handling based on serviceService errors
+    if (error.message.includes('Service not found')) {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message.includes('Unauthorized')) {
+      return res.status(403).json({ message: error.message });
+    }
     res.status(500).json({ message: error.message || 'Server error' });
   }
 };
@@ -56,12 +65,18 @@ exports.deleteService = async (req, res) => {
     res.json({ message: 'Service deleted successfully' });
   } catch (error) {
     console.error('Error deleting service:', error);
+    if (error.message.includes('Service not found')) {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message.includes('Unauthorized')) {
+      return res.status(403).json({ message: error.message });
+    }
+    if (error.message.includes('Cannot delete service with upcoming appointments')) {
+      return res.status(409).json({ message: error.message }); // 409 Conflict
+    }
     res.status(500).json({ message: error.message || 'Server error' });
   }
 };
-
-
-// 
 
 exports.getVendorServices = async (req, res) => {
   try {
@@ -75,7 +90,10 @@ exports.getVendorServices = async (req, res) => {
     }
 
     // 2. Find all services for that shop
-    const services = await Service.find({ shop: shop._id });
+    // This is effectively `getShopServices` with a dynamically found shopId.
+    // Consider reusing `serviceService.getShopServices` here.
+    const { services } = await serviceService.getShopServices(shop._id);
+
 
     res.status(200).json(services);
   } catch (error) {

@@ -38,6 +38,7 @@
     "twilio": "^5.5.2"
   },
   "devDependencies": {
+    "node-gyp": "^11.2.0",
     "nodemon": "^2.0.22"
   },
   "engines": {

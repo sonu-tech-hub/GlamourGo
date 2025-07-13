@@ -4,7 +4,7 @@ const Shop = require("../models/Shop");
 const Token = require("../models/Token");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
+const bcrypt = require('bcryptjs');
 const emailService = require("../services/emailService");
 const smsService = require("../services/smsService");
 

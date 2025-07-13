@@ -4,7 +4,7 @@ frontend/node_modules/
 server/node_modules/
 packages/*/node_modules/
 examples/*/node_modules/
-
+# C:\Users\ASUS\OneDrive\Desktop\glamourGo\Server\node_modules
 # Logs
 logs/
 *.log

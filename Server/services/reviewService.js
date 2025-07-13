@@ -224,8 +224,8 @@ exports.reportReview = async (reviewId, reason, userId) => {
   const review = await Review.findById(reviewId);
   if (!review) {
     throw new AppError("Review not found", 404);
-  }
-
+  }   
+// commit changes for only the report functionality
   const report = new Report({
     reportedBy: userId,
     reportType: "review",

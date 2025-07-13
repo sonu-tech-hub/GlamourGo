@@ -19,7 +19,8 @@
   "description": "Backend API for beauty booking application",
   "dependencies": {
     "bcrypt": "^5.1.0",
-    "cloudinary": "^2.7.0",
+    "cloudinary": "^1.30.0",
+
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.0.3",

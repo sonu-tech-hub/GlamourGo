@@ -5,7 +5,7 @@ const {auth,shopOwner } = require('../middlewares/authMiddleware.js');
 
 // All routes below require authentication (i.e., shop owner must be logged in)
 
-// GET /api/analytics/shop/:shopId/dashboard  checked 
+// GET /api/analytics/shop/:shopId/dashboard  checked k
 router.get('/shop/:shopId/dashboard',auth, shopOwner, analyticsController.getShopDashboardStats);
 
 // GET /api/analytics/shop/:shopId/revenue?period=week|month|year

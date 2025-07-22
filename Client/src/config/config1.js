@@ -1,2 +1,2 @@
 // client/src/config/config.js
-export const API_URL = 'http://localhost:5000'; // Replace with your actual backend API URL
+export const API_URL = 'https://glamourgo.onrender.com'; // Replace with your actual backend API URL

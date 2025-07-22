@@ -9,4 +9,4 @@ cloudinary.config({
     secure: true // Ensures URLs are HTTPS
 });
 
-module.exports = cloudinary;
+module.exports = cloudinary;k

@@ -65,14 +65,15 @@ const ProtectedRoute = ({ element, requiredRole }) => {
   if (loading) {
     return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   }
+  if (requiredRole && user?.user?.userType !== requiredRole) {
+    return <Navigate to="/" />;
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
   
-  if (requiredRole && user?.user?.userType !== requiredRole) {
-    return <Navigate to="/" />;
-  }
+  
   
   return element;
 };
